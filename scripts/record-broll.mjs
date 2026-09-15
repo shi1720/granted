@@ -62,17 +62,21 @@ await page.waitForSelector("text=Why it fits", { timeout: 120000 });
 await beat(5000); // read the brief
 await page.mouse.wheel(0, 400);
 await beat(3000); // EV stat row
-// the honest skip
-const skip = page.locator("article", { hasText: "Smart Reentry" }).first();
-if ((await skip.count()) > 0) {
-  await skip.scrollIntoViewIfNeeded();
-  await skip.locator("text=Analyze fit").click();
-  await page.waitForSelector("text=Not eligible", { timeout: 120000 });
-  await beat(5000); // let the skip verdict land
-}
 await featured.scrollIntoViewIfNeeded();
 await featured.locator("text=+ Save to pipeline").click();
 await beat(1000);
+
+// The honest skip — via the deterministic "60-second tour" strip.
+await page.locator("text=See an honest").scrollIntoViewIfNeeded();
+await beat(1500);
+await page.click("text=See an honest");
+await page.waitForSelector("text=Smart Reentry");
+await page.click("text=Run the Analyst");
+await page.waitForSelector("text=Not eligible", { timeout: 120000 });
+await beat(6000); // let the skip verdict land — the video's key moment
+await page.goBack();
+await page.waitForSelector("article");
+await beat(800);
 
 // [2:05] The drafting pipeline
 await page.goto(`${BASE}/grants/363637`);
