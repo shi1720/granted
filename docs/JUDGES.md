@@ -1,42 +1,18 @@
-# For Judges — evaluate Granted in 3 minutes
+# Testing Granted
 
-No accounts, no keys required. (With a key it's fully live; without one, every fallback is
-honest and labeled.)
+App: https://grantedai.web.app
 
-```bash
-npm install && npm run dev     # http://localhost:3000
-# optional full-live mode: cp .env.example .env.local + your ANTHROPIC_API_KEY
-```
+No login or API key is required. Use a modern browser with local storage enabled.
 
-**The 3-minute path:**
+1. Open the workspace. Select **Or load the demo organization**. Brightpath is fictional and all its outcomes are sample data.
+2. Review the profile and select **Save & find grants**.
+3. Search for `reentry`, or follow the featured opportunity link in the guided tour.
+4. Select **Run the Analyst**. Check the eligibility explanation, risks, effort, and planning assumptions. Open **View source** to inspect the Grants.gov listing.
+5. Select **Save to pipeline**, then **Start drafting with AI**. Allow up to a few minutes. The four stages should finish with a reviewed proposal.
+6. Open the missing-evidence checklist. Select **Edit section**, change the text, and finish editing. Reload the page to verify the edit persists.
+7. Use **Download .md** or **Copy** to export. In Pipeline, change the opportunity's stage and verify it persists after a reload.
+8. Return to Discover and open **See an honest skip verdict**. Run the Analyst. The government-only opportunity should show **Not eligible** and **Skip**, with drafting disabled.
+9. Try the app on a phone. Discover, Pipeline, and Organization remain available in the mobile navigation.
+10. Optionally use your own non-sensitive organization summary with **Extract profile with AI**. Verify the facts before saving. Changing the organization starts a fresh workspace.
 
-1. **Landing** — note the live counter: that's the real number of open federal
-   opportunities on Grants.gov at this moment.
-2. **Open the app → "Load the demo organization" → Save & find grants.**
-   Discover shows **live Grants.gov results** (see the "Live" badge — real deadlines,
-   real award ceilings).
-3. **Click "Analyze fit" on the featured Second Chance Act grant** → a go/no-go brief
-   with an eligibility gate, effort estimate, and expected-value math shown.
-4. **The honesty test:** on Discover, use the "60-second tour" strip → **"See an honest
-   'skip' verdict"** (BJA Smart Reentry) → *Run the Analyst*. A perfect-sounding mission
-   fit that Granted tells you to **skip**, because the funder's eligible-applicant list
-   is governments only. This is the product's core claim: it protects a small org's 40
-   hours, even from itself. (Pinned by unit tests against real snapshot data.)
-5. **Open the featured grant's workspace → start drafting** → watch
-   Strategist → Writer → Reviewer → Reviser stream live: the funder-priority read, the
-   grounded sections with `[ADD: …]` placeholders instead of invented data, the panel
-   score, and the before/after revision (toggle "view original" on the revised section).
-6. **Pipeline** — deadline-sorted board with combined expected value. Export the draft
-   with **Download .md**.
-
-**Where to look in the code (5 files tell the story):**
-
-| File | What it shows |
-|---|---|
-| `lib/ai/draft.ts` | The multi-agent pipeline + chunk-safe stream parser |
-| `lib/ai/schemas.ts` | Structured outputs for every judgment call |
-| `lib/ai/prompts.ts` | The grounding/honesty contract each agent works under |
-| `lib/fit.ts` | Deterministic economics + the transparent no-key fit engine |
-| `scripts/smoke.mjs` | Playwright E2E that drives the whole journey (it caught a real bug) |
-
-`npm test` runs 31 unit tests, including the stream parser fed one character at a time.
+The public demo limits repeated AI requests. If you reach a limit, wait and retry later. Grants.gov availability and model latency can vary. Offline grant snapshots and heuristic analysis are explicitly labeled. Saved work is specific to this browser and device. Download work you want to keep outside it.

@@ -1,5 +1,6 @@
+import { guardAiRequest } from "@/lib/request-guard";
 import { NextRequest, NextResponse } from "next/server";
-import { friendlyAiError, hasAnthropicKey } from "@/lib/ai/client";
+import { friendlyAiError, hasAiKey } from "@/lib/ai/client";
 import { extractProfile } from "@/lib/ai/profile";
 
 export const dynamic = "force-dynamic";
@@ -7,11 +8,13 @@ export const maxDuration = 60;
 
 /** Build a structured org profile from freeform text via the extractor agent. */
 export async function POST(req: NextRequest) {
-  if (!hasAnthropicKey()) {
+  const denied = guardAiRequest(req);
+  if (denied) return denied;
+  if (!hasAiKey()) {
     return NextResponse.json(
       {
         error:
-          "Profile extraction needs a Claude API key. Add ANTHROPIC_API_KEY to .env.local — or load the demo organization to explore.",
+          "Profile extraction needs a Claude API key. Add ANTHROPIC_API_KEY to .env.local ; or load the demo organization to explore.",
         code: "need_key",
       },
       { status: 409 },

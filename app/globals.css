@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  /* Granted brand — warm paper, deep pine, amber accent. */
+  /* Granted brand ; warm paper, deep pine, amber accent. */
   --color-paper: #faf7f1;
   --color-paper-deep: #f3eee4;
   --color-card: #fffdf9;
   --color-ink: #1c231e;
   --color-ink-soft: #4b564e;
-  --color-ink-faint: #77837a;
+  --color-ink-faint: #5f6d63;
   --color-pine-950: #122b1d;
   --color-pine-900: #17402a;
   --color-pine-700: #1e5936;
@@ -44,7 +44,7 @@ body {
   background: var(--color-pine-100);
 }
 
-/* ————— shared primitives ————— */
+/* ;;;;; shared primitives ;;;;; */
 
 .font-display {
   font-family: var(--font-display);
@@ -79,7 +79,7 @@ body {
   @apply block text-xs font-semibold uppercase tracking-wider text-ink-faint mb-1.5;
 }
 
-/* ————— proposal prose ————— */
+/* ;;;;; proposal prose ;;;;; */
 
 .prose-proposal {
   @apply text-[15px] leading-relaxed text-ink;
@@ -97,7 +97,7 @@ body {
   @apply rounded bg-amber-soft px-1 py-0.5 text-amber-strong font-medium;
 }
 
-/* ————— motion ————— */
+/* ;;;;; motion ;;;;; */
 
 @keyframes fade-up {
   from {
@@ -138,3 +138,8 @@ body {
 .score-ring {
   animation: draw-ring 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+:focus-visible { outline: 3px solid #2e7d4f; outline-offset: 3px; }
+body { overflow-wrap: break-word; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media print { header, button, .btn-primary, .btn-secondary { display: none !important; } .card { break-inside: avoid; box-shadow: none; } }

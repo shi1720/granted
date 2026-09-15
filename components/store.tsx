@@ -8,13 +8,14 @@ import {
   useMemo,
   useState,
 } from "react";
+import { SavedWorkspaceZ } from "@/lib/storage";
 import type { FitReport, OrgProfile, PipelineEntry, Proposal } from "@/lib/types";
 
 /**
  * Client-side app state with localStorage persistence.
  * The MVP is deliberately serverless-friendly: your org profile, fit briefs,
  * pipeline, and proposals live in your browser; the server stays stateless.
- * (Roadmap: Postgres + auth for teams — see README.)
+ * (Roadmap: Postgres + auth for teams ; see README.)
  */
 
 const STORAGE_KEY = "granted:v1";
@@ -30,6 +31,7 @@ interface AiStatus {
   loaded: boolean;
   aiEnabled: boolean;
   model: string | null;
+  apiBase: string;
 }
 
 interface GrantedStore extends PersistedState {
@@ -54,22 +56,23 @@ export function GrantedProvider({ children }: { children: React.ReactNode }) {
     loaded: false,
     aiEnabled: false,
     model: null,
+    apiBase: "",
   });
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is only readable post-mount; this is the standard hydration pattern.
-      if (raw) setState({ ...EMPTY, ...JSON.parse(raw) });
+      if (raw) { const restored = SavedWorkspaceZ.safeParse(JSON.parse(raw)); if (restored.success) setState(restored.data); }
     } catch {
-      // Corrupt or unavailable storage — start fresh.
+      // Corrupt or unavailable storage ; start fresh.
     }
     setHydrated(true);
 
     fetch("/api/ai/status")
       .then((r) => r.json())
-      .then((s) => setAiStatus({ loaded: true, aiEnabled: Boolean(s.aiEnabled), model: s.model }))
-      .catch(() => setAiStatus({ loaded: true, aiEnabled: false, model: null }));
+      .then((s) => setAiStatus({ loaded: true, aiEnabled: Boolean(s.aiEnabled), model: s.model, apiBase: s.apiBase || "" }))
+      .catch(() => setAiStatus({ loaded: true, aiEnabled: false, model: null, apiBase: "" }));
   }, []);
 
   useEffect(() => {
@@ -79,13 +82,13 @@ export function GrantedProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      // Storage full/unavailable — the app still works for this session.
+      // Storage full/unavailable ; the app still works for this session.
     }
   }, [state, hydrated]);
 
   const setOrg = useCallback(
     (org: OrgProfile | null) =>
-      setState((s) => (org ? { ...s, org } : { ...s, org: null, fitReports: {}, proposals: {} })),
+      setState((s) => JSON.stringify(org) === JSON.stringify(s.org) ? s : ({ ...EMPTY, org })),
     [],
   );
   const saveFitReport = useCallback(

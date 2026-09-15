@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId } from "react";
 import { useRouter } from "next/navigation";
+import { OrgProfileZ } from "@/lib/validate";
 import { Nav } from "@/components/nav";
 import { Spinner } from "@/components/ui";
 import { useGranted } from "@/components/store";
@@ -46,7 +47,7 @@ export default function OnboardingPage() {
     setExtracting(true);
     setError(null);
     try {
-      const res = await fetch("/api/ai/profile", {
+      const res = await fetch(`${aiStatus.apiBase}/api/ai/profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: freeform }),
@@ -75,7 +76,9 @@ export default function OnboardingPage() {
       setError("At minimum, Granted needs your organization's name and mission.");
       return;
     }
-    setOrg(form);
+    const validated = OrgProfileZ.safeParse(form);
+    if (!validated.success) { setError(validated.error.issues[0]?.message ?? "Please check your profile fields."); return; }
+    setOrg(validated.data);
     router.push("/discover");
   }
 
@@ -87,11 +90,11 @@ export default function OnboardingPage() {
           Tell Granted about your organization
         </h1>
         <p className="mt-2 max-w-2xl text-ink-soft">
-          This profile grounds every agent downstream — the Analyst&apos;s go/no-go briefs and the
-          Writer&apos;s drafts all build on <em>your</em> real programs and outcomes. Nothing is
-          invented on your behalf.
+          This profile grounds every agent downstream ; the Analyst&apos;s go/no-go briefs and the
+          Writer&apos;s drafts all build on <em>your</em> real programs and outcomes. Check the extracted facts before saving. Updating your profile starts a fresh workspace.
         </p>
 
+        <p className="mt-3 text-xs text-ink-soft">Brightpath is a fictional sample organization. Its outcomes are examples, not verified real-world results. Your profile is sent to the AI provider only when you request extraction, analysis, or drafting.</p>
         {/* Paste anything */}
         <section className="card mt-8 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -103,12 +106,13 @@ export default function OnboardingPage() {
             </button>
           </div>
           <p className="mt-1.5 text-sm text-ink-soft">
-            Mission statement, website copy, an annual-report excerpt — Claude turns it into a
+            Mission statement, website copy, an annual-report excerpt ; AI turns it into a
             structured profile you can edit below.
           </p>
           <textarea
             className="input mt-4 min-h-36 font-mono text-[13px]"
             placeholder="Paste a few paragraphs about your organization…"
+            aria-label="Organization background"
             value={freeform}
             onChange={(e) => setFreeform(e.target.value)}
           />
@@ -123,7 +127,7 @@ export default function OnboardingPage() {
                   <Spinner /> Extracting profile…
                 </>
               ) : (
-                "Extract profile with Claude"
+                "Extract profile with AI"
               )}
             </button>
             <button
@@ -134,7 +138,7 @@ export default function OnboardingPage() {
             </button>
             {aiStatus.loaded && !aiStatus.aiEnabled && (
               <span className="text-xs text-amber-strong">
-                Extraction needs an ANTHROPIC_API_KEY — or use the demo organization.
+                Extraction needs an OPENAI_API_KEY ; or use the demo organization.
               </span>
             )}
           </div>
@@ -148,12 +152,12 @@ export default function OnboardingPage() {
 
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="label">Organization name</label>
-              <input className="input" value={form.name} onChange={(e) => patch({ name: e.target.value })} />
+              <label htmlFor="organization-name" className="label">Organization name</label>
+              <input id="organization-name" className="input" value={form.name} onChange={(e) => patch({ name: e.target.value })} />
             </div>
             <div>
-              <label className="label">Organization type</label>
-              <select
+              <label htmlFor="organization-type" className="label">Organization type</label>
+              <select id="organization-type"
                 className="input"
                 value={form.orgType}
                 onChange={(e) => patch({ orgType: e.target.value as OrgType })}
@@ -166,28 +170,28 @@ export default function OnboardingPage() {
               </select>
             </div>
             <div className="sm:col-span-2">
-              <label className="label">One-line tagline</label>
-              <input className="input" value={form.tagline} onChange={(e) => patch({ tagline: e.target.value })} />
+              <label htmlFor="one-line-tagline" className="label">One-line tagline</label>
+              <input id="one-line-tagline" className="input" value={form.tagline} onChange={(e) => patch({ tagline: e.target.value })} />
             </div>
             <div className="sm:col-span-2">
-              <label className="label">Mission</label>
-              <textarea
+              <label htmlFor="mission" className="label">Mission</label>
+              <textarea id="mission"
                 className="input min-h-24"
                 value={form.mission}
                 onChange={(e) => patch({ mission: e.target.value })}
               />
             </div>
             <div>
-              <label className="label">City</label>
-              <input className="input" value={form.city} onChange={(e) => patch({ city: e.target.value })} />
+              <label htmlFor="city" className="label">City</label>
+              <input id="city" className="input" value={form.city} onChange={(e) => patch({ city: e.target.value })} />
             </div>
             <div>
-              <label className="label">State</label>
-              <input className="input" value={form.state} onChange={(e) => patch({ state: e.target.value })} />
+              <label htmlFor="state" className="label">State</label>
+              <input id="state" className="input" value={form.state} onChange={(e) => patch({ state: e.target.value })} />
             </div>
             <div>
-              <label className="label">Annual budget (USD)</label>
-              <input
+              <label htmlFor="annual-budget-usd" className="label">Annual budget (USD)</label>
+              <input id="annual-budget-usd"
                 className="input"
                 type="number"
                 min={0}
@@ -196,8 +200,8 @@ export default function OnboardingPage() {
               />
             </div>
             <div>
-              <label className="label">Staff count</label>
-              <input
+              <label htmlFor="staff-count" className="label">Staff count</label>
+              <input id="staff-count"
                 className="input"
                 type="number"
                 min={0}
@@ -247,7 +251,7 @@ export default function OnboardingPage() {
             </div>
             <ListField
               className="sm:col-span-2"
-              label="Programs (one per line — be concrete)"
+              label="Programs (one per line ; be concrete)"
               value={form.programs}
               onChange={(v) => patch({ programs: v })}
               placeholder={"CareerLaunch: a 12-week paid workforce training program…"}
@@ -255,15 +259,15 @@ export default function OnboardingPage() {
             />
             <ListField
               className="sm:col-span-2"
-              label="Documented outcomes (one per line — numbers win grants)"
+              label="Documented outcomes (one per line ; numbers win grants)"
               value={form.achievements}
               onChange={(v) => patch({ achievements: v })}
               placeholder={"Served 340 youth in 2025; 78% completion rate"}
               rows={4}
             />
             <div className="sm:col-span-2">
-              <label className="label">Grant history (optional)</label>
-              <textarea
+              <label htmlFor="grant-history-optional" className="label">Grant history (optional)</label>
+              <textarea id="grant-history-optional"
                 className="input min-h-16"
                 value={form.grantHistory}
                 onChange={(e) => patch({ grantHistory: e.target.value })}
@@ -281,7 +285,7 @@ export default function OnboardingPage() {
             </button>
             {org && (
               <span className="text-xs text-ink-faint">
-                Saved locally in your browser — nothing leaves your machine except analysis requests.
+                Saved locally in your browser ; nothing leaves your machine except analysis requests.
               </span>
             )}
           </div>
@@ -306,17 +310,19 @@ function ListField({
   rows?: number;
   className?: string;
 }) {
+  const fieldId = useId();
   const [text, setText] = useState(value.join("\n"));
   const joined = value.join("\n");
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- resync only when the parent replaces the list (extraction / demo load).
-    setText(joined);
-  }, [joined]);
+    if (text.split("\n").map(s => s.trim()).filter(Boolean).join("\n") !== joined) setText(joined);
+  }, [joined, text]);
   return (
     <div className={className}>
-      <label className="label">{label}</label>
+      <label htmlFor={fieldId} className="label">{label}</label>
       <textarea
         className="input"
+        id={fieldId}
         rows={rows}
         placeholder={placeholder}
         value={text}

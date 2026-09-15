@@ -1,7 +1,6 @@
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { expectedValue, realisticAward, APPLICATION_COST_USD } from "../fit";
+import { expectedValue, realisticAward, APPLICATION_COST_USD, eligibilityVerdict, heuristicFitReport } from "../fit";
 import type { FitReport, GrantDetail, OrgProfile } from "../types";
-import { MODEL, anthropic } from "./client";
+import { structured, PROVIDER } from "./client";
 import { ANALYST_SYSTEM, grantContext, orgContext } from "./prompts";
 import { FitAnalysisSchema } from "./schemas";
 
@@ -10,22 +9,16 @@ import { FitAnalysisSchema } from "./schemas";
  * Structured output guarantees the response parses into a FitReport.
  */
 export async function analyzeFit(grant: GrantDetail, org: OrgProfile): Promise<FitReport> {
-  const response = await anthropic().messages.parse({
-    model: MODEL,
-    max_tokens: 8000,
-    system: ANALYST_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: `${orgContext(org)}\n\n${grantContext(grant)}\n\nProduce your go/no-go brief for this organization and this opportunity.`,
-      },
-    ],
-    output_config: { format: zodOutputFormat(FitAnalysisSchema) },
-  });
+  const gate = eligibilityVerdict(grant, org);
+  const baseline = heuristicFitReport(grant, org);
+  if (gate.verdict === "ineligible" || (grant.closeDate && new Date(grant.closeDate).getTime() < Date.now() - 86_400_000)) return baseline;
+  const response = await structured(FitAnalysisSchema, ANALYST_SYSTEM, `${orgContext(org)}\n\n${grantContext(grant)}\n\nProduce your go/no-go brief for this organization and opportunity.`);
 
   const a = response.parsed_output;
   if (!a) throw new Error("The Analyst returned an unparseable brief. Try again.");
 
+  if (a.eligibilityVerdict === "ineligible") { a.recommendation = "skip"; a.fitScore = Math.min(a.fitScore, 20); a.winStrategy = []; }
+  if (gate.verdict === "unclear" && a.eligibilityVerdict === "eligible") { a.eligibilityVerdict = "unclear"; a.eligibilityReasoning = gate.reasoning + " " + a.eligibilityReasoning; }
   // Expected value is meaningless for an org that can't apply.
   const ev =
     a.eligibilityVerdict === "ineligible"
@@ -54,7 +47,7 @@ export async function analyzeFit(grant: GrantDetail, org: OrgProfile): Promise<F
     },
     verdict: a.verdict,
     winStrategy: a.winStrategy,
-    engine: "claude",
+    engine: PROVIDER,
     generatedAt: new Date().toISOString(),
   };
 }

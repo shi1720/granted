@@ -42,3 +42,8 @@ next-env.d.ts
 
 # local env
 .env.local
+
+!/.env.example
+/firebase-debug.log
+/.firebase/
+/test-results/

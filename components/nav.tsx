@@ -55,6 +55,9 @@ export function Nav() {
           )}
         </div>
       </div>
+      <nav aria-label="Mobile navigation" className="flex justify-around border-t border-line px-3 py-2 sm:hidden">
+        {LINKS.map(l => <Link key={l.href} href={l.href} aria-current={pathname.startsWith(l.href) ? "page" : undefined} className={`rounded-full px-4 py-2 text-sm font-medium ${pathname.startsWith(l.href) ? "bg-pine-100 text-pine-950" : "text-ink-soft"}`}>{l.label}</Link>)}
+      </nav>
     </header>
   );
 }

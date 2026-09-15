@@ -1,4 +1,5 @@
 "use client";
+import { eligibilityVerdict } from "@/lib/fit";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
@@ -64,6 +65,8 @@ const initialState = (): StudioState => ({
 export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport | null }) {
   const { org, proposals, saveProposal, aiStatus } = useGranted();
   const [s, setS] = useState<StudioState>(initialState);
+  const [edited, setEdited] = useState(false);
+  const [copyStatus, setCopyStatus] = useState("Copy");
   const abortRef = useRef<AbortController | null>(null);
   const existing: Proposal | undefined = proposals[grant.id];
 
@@ -160,6 +163,9 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
         }
         case "done":
           next.phase = "done";
+          next.notes = e.proposal.reviewNotes;
+          next.order = e.proposal.sections.map(x => x.id);
+          for (const sec of e.proposal.sections) next.sections[sec.id] = {...next.sections[sec.id], ...sec, streaming:false};
           next.scoreAfter = e.proposal.scoreAfter;
           next.usage = e.proposal.usage ?? null;
           break;
@@ -180,7 +186,7 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
     setS({ ...initialState(), phase: "running" });
 
     try {
-      const res = await fetch("/api/ai/draft", {
+      const res = await fetch(`${aiStatus.apiBase}/api/ai/draft`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ grantId: grant.id, org, fit }),
@@ -228,6 +234,7 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
       }
 
       if (finalProposal) saveProposal(finalProposal);
+      else setS(prev => prev.phase === "error" ? prev : ({...prev, phase: "error", error: "The connection ended before the proposal completed. Please retry."}));
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
         setS((prev) => ({ ...prev, phase: "error", error: "Connection lost while drafting." }));
@@ -243,12 +250,18 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
     a.href = url;
     a.download = `${grant.number}-proposal.md`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  function editSection(id: string, content: string) {
+    setEdited(true);
+    setS(prev => ({...prev, sections: {...prev.sections, [id]: {...prev.sections[id], content}}}));
+    if (existing) saveProposal({...existing, sections: existing.sections.map(sec => sec.id === id ? {...sec, content} : sec), editedAt: new Date().toISOString()});
+  }
+  const missing = s.order.flatMap(id => (s.sections[id]?.content.match(/\[ADD:[^\]]+\]/g) || []));
   const noteCountFor = (id: string) => s.notes.filter((n) => n.sectionId === id).length;
 
-  // ——— idle: the launch card ———
+  // ;;; idle: the launch card ;;;
   if (s.phase === "idle") {
     return (
       <div className="card p-6">
@@ -257,17 +270,17 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
           Four agents run in sequence: the <strong>Strategist</strong> plans around this funder&apos;s
           priorities, the <strong>Writer</strong> drafts every section from your organization&apos;s real
           outcomes, the <strong>Reviewer</strong> scores it like the funder&apos;s panel would, and the{" "}
-          <strong>Reviser</strong> rewrites whatever got flagged. You&apos;ll watch it happen live —
+          <strong>Reviser</strong> rewrites whatever got flagged. You&apos;ll watch it happen live ;
           typically 2–4 minutes.
         </p>
+        {org && eligibilityVerdict(grant, org).verdict === "ineligible" && <p className="mt-4 text-sm text-danger">This opportunity excludes your organization type. Choose an eligible grant to start drafting.</p>}
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button onClick={start} disabled={!org} className="btn-primary px-6 py-3">
-            {aiStatus.aiEnabled ? "Start drafting with Claude" : "Watch the pipeline (demo replay)"}
+          <button onClick={start} disabled={!org || eligibilityVerdict(grant, org).verdict === "ineligible"} className="btn-primary px-6 py-3">
+            {aiStatus.aiEnabled ? "Start drafting with AI" : "Watch the pipeline (demo replay)"}
           </button>
           {!aiStatus.aiEnabled && aiStatus.loaded && (
             <span className="max-w-md text-xs text-ink-faint">
-              Demo mode replays a real pipeline run for the featured opportunity. Add an{" "}
-              <code className="rounded bg-paper-deep px-1">ANTHROPIC_API_KEY</code> to draft live for any grant.
+              Demo mode uses a clearly labeled sample proposal for Brightpath. Live drafting is not configured on this server.
             </span>
           )}
         </div>
@@ -295,7 +308,8 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {s.phase === "running" && <button className="btn-secondary text-xs" onClick={() => { abortRef.current?.abort(); setS(prev => ({...prev, phase: "error", error: "Drafting stopped. You can retry when ready."})); }}>Stop drafting</button>}
             {s.phase !== "running" && (
               <button onClick={start} className="btn-secondary text-xs px-4 py-2">
                 {s.phase === "done" ? "Redraft from scratch" : "Retry"}
@@ -307,10 +321,10 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
                   Download .md
                 </button>
                 <button
-                  onClick={() => navigator.clipboard.writeText(assembleMarkdown(s, grant))}
+                  onClick={async () => { try { await navigator.clipboard.writeText(assembleMarkdown(s, grant)); setCopyStatus("Copied"); } catch { setCopyStatus("Use Download instead"); } }}
                   className="btn-secondary text-xs px-4 py-2"
                 >
-                  Copy
+                  {copyStatus}
                 </button>
               </>
             )}
@@ -363,7 +377,7 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
             {s.error}
             {s.needKey && (
               <span className="mt-1 block text-xs">
-                Get a key at console.anthropic.com → add <code>ANTHROPIC_API_KEY</code> to{" "}
+                Get a key at console.anthropic.com → add <code>OPENAI_API_KEY</code> to{" "}
                 <code>.env.local</code> → restart the dev server.
               </span>
             )}
@@ -388,11 +402,10 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-display text-lg font-semibold text-pine-950">
-                Review panel verdict
+                AI review feedback
               </h3>
               <p className="mt-1 text-sm text-ink-soft">
-                The Reviewer scores drafts against this funder&apos;s stated priorities — the same
-                lens a real panel uses. {s.notes.length > 0 && `${s.notes.length} note${s.notes.length > 1 ? "s" : ""} below.`}
+                An AI quality check against the synopsis, not an official funder score. {s.notes.length > 0 && `${s.notes.length} note${s.notes.length > 1 ? "s" : ""} below.`}
               </p>
             </div>
           </div>
@@ -417,6 +430,7 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
         </div>
       )}
 
+      {s.phase === "done" && <div className="card p-5"><h3 className="font-display text-xl font-semibold text-pine-950">Before you submit</h3><p className="mt-2 text-sm text-ink-soft">{missing.length} evidence placeholder{missing.length === 1 ? "" : "s"} to resolve. Review every claim and the full funding notice. AI review scores describe the generated draft; manual edits are not rescored.</p>{missing.length > 0 && <details className="mt-3 text-sm"><summary className="cursor-pointer font-medium text-amber-strong">Show missing evidence</summary><ul className="mt-2 list-disc space-y-1 pl-5">{[...new Set(missing)].map(m => <li key={m}>{m}</li>)}</ul></details>}{(edited || existing?.editedAt) && <p role="status" className="mt-2 text-xs text-pine-700">Your edits are saved in this browser.</p>}</div>}
       {/* the proposal */}
       {s.planTitle && (
         <div className="card overflow-hidden animate-fade-up">
@@ -433,7 +447,7 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
               const sec = s.sections[id];
               if (!sec || (!sec.content && !sec.streaming)) return null;
               return (
-                <SectionView key={id} section={sec} noteCount={noteCountFor(id)} />
+                <SectionView key={id} section={sec} noteCount={noteCountFor(id)} onEdit={s.phase === "done" ? (content) => editSection(id, content) : undefined} />
               );
             })}
           </div>
@@ -443,13 +457,15 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
   );
 }
 
-function SectionView({ section, noteCount }: { section: SectionState; noteCount: number }) {
+function SectionView({ section, noteCount, onEdit }: { section: SectionState; noteCount: number; onEdit?: (content: string) => void }) {
+  const [editing, setEditing] = useState(false);
   const [showOriginal, setShowOriginal] = useState(false);
   return (
     <section className="px-6 py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display text-lg font-semibold text-pine-950">{section.title}</h3>
         <div className="flex items-center gap-2">
+          {onEdit && <button className="pill cursor-pointer border border-line py-1 text-pine-700" onClick={() => setEditing(v => !v)}>{editing ? "Done editing" : "Edit section"}</button>}
           {noteCount > 0 && (
             <span className="pill bg-amber-soft text-amber-strong">{noteCount} review note{noteCount > 1 ? "s" : ""}</span>
           )}
@@ -464,10 +480,10 @@ function SectionView({ section, noteCount }: { section: SectionState; noteCount:
         </div>
       </div>
       <div className="mt-3">
-        <Prose
+        {editing ? <textarea aria-label={`Edit ${section.title}`} className="input min-h-80" value={section.content} onChange={e => onEdit?.(e.target.value)} /> : <Prose
           text={showOriginal && section.original ? section.original : section.content}
           streaming={section.streaming}
-        />
+        />}
       </div>
     </section>
   );

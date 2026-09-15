@@ -1,5 +1,5 @@
 /**
- * Core domain types for Granted — the AI grants team for small nonprofits.
+ * Core domain types for Granted ; the AI grants team for small nonprofits.
  */
 
 /** A nonprofit's organizational profile. Built once, reused by every agent. */
@@ -20,7 +20,7 @@ export interface OrgProfile {
   yearFounded?: number;
   /** Key programs, described concretely. */
   programs: string[];
-  /** Measurable outcomes and achievements — the Writer agent's raw material. */
+  /** Measurable outcomes and achievements ; the Writer agent's raw material. */
   achievements: string[];
   populationsServed: string[];
   /** Freeform notes on past grants won or applied for. */
@@ -109,7 +109,7 @@ export interface FitReport {
   /** If applying: the angles most likely to win with this specific funder. */
   winStrategy: string[];
   /** "claude" for live AI analysis, "heuristic" for the no-key fallback engine. */
-  engine: "claude" | "heuristic";
+  engine: "openai" | "claude" | "heuristic";
   generatedAt: string;
 }
 
@@ -136,6 +136,7 @@ export interface ReviewNote {
 }
 
 export interface Proposal {
+  editedAt?: string;
   grantId: string;
   grantTitle: string;
   orgName: string;
@@ -146,7 +147,7 @@ export interface Proposal {
   scoreBefore: number | null;
   scoreAfter: number | null;
   generatedAt: string;
-  engine: "claude" | "demo";
+  engine: "openai" | "claude" | "demo";
   /** Measured token usage across the pipeline's model calls (live runs only). */
   usage?: {
     inputTokens: number;

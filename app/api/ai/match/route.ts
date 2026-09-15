@@ -1,5 +1,6 @@
+import { guardAiRequest } from "@/lib/request-guard";
 import { NextRequest, NextResponse } from "next/server";
-import { friendlyAiError, hasAnthropicKey } from "@/lib/ai/client";
+import { friendlyAiError, hasAiKey } from "@/lib/ai/client";
 import { analyzeFit } from "@/lib/ai/match";
 import { DEMO_GRANTS } from "@/lib/demo";
 import { heuristicFitReport } from "@/lib/fit";
@@ -14,6 +15,8 @@ export const maxDuration = 120;
  * Without: the transparent heuristic engine (labeled in the report).
  */
 export async function POST(req: NextRequest) {
+  const denied = guardAiRequest(req);
+  if (denied) return denied;
   let grantId: string;
   let org: ReturnType<typeof OrgProfileZ.parse>;
   try {
@@ -22,7 +25,7 @@ export async function POST(req: NextRequest) {
     org = OrgProfileZ.parse(body.org);
   } catch {
     return NextResponse.json(
-      { error: "Invalid request — send a grantId and a complete org profile." },
+      { error: "Invalid request ; send a grantId and a complete org profile." },
       { status: 400 },
     );
   }
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (!hasAnthropicKey()) {
+  if (!hasAiKey()) {
     return NextResponse.json({ report: heuristicFitReport(grant, org) });
   }
 

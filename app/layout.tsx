@@ -15,9 +15,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Granted — the AI grants team for small nonprofits",
+  icons: { icon: "/granted.svg" },
+  title: "Granted | The AI grants team for small nonprofits",
   description:
-    "Granted finds the federal grants your nonprofit can actually win, tells you honestly which to skip, and drafts reviewer-critiqued proposals in minutes — powered by live Grants.gov data and a team of Claude agents.",
+    "Find relevant federal grants, check eligibility, and build a reviewed proposal grounded in your nonprofit’s real work.",
 };
 
 export default function RootLayout({

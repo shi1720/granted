@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { searchGrants } from "@/lib/grantsgov";
 import { DEMO_GRANTS } from "@/lib/demo";
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     startRecordNum?: number;
   };
   try {
-    body = await req.json();
+    body = z.object({keyword: z.string().max(300).optional(), fundingCategories: z.array(z.string().max(5)).max(20).optional(), eligibilities: z.array(z.string().max(5)).max(25).optional(), rows: z.number().int().min(1).max(50).optional(), startRecordNum: z.number().int().min(0).max(10000).optional()}).parse(await req.json());
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
@@ -34,11 +35,12 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("Grants.gov search failed, serving snapshot:", err);
     const kw = (body.keyword ?? "").toLowerCase();
-    const hits = DEMO_GRANTS.filter(
-      (g) => !kw || `${g.title} ${g.synopsis}`.toLowerCase().includes(kw),
-    ).map(({ id, number, title, agency, agencyCode, openDate, closeDate, status, cfdaList }) => ({
+    const matching = DEMO_GRANTS.filter(
+      (g) => (!kw || `${g.title} ${g.synopsis}`.toLowerCase().includes(kw)) && (!body.fundingCategories?.length || body.fundingCategories.some(c => g.fundingCategories.includes(c))) && (!body.eligibilities?.length || body.eligibilities.some(c => g.eligibilityCodes.includes(c))),
+    );
+    const hits = matching.slice(body.startRecordNum ?? 0, (body.startRecordNum ?? 0) + (body.rows ?? 20)).map(({ id, number, title, agency, agencyCode, openDate, closeDate, status, cfdaList }) => ({
       id, number, title, agency, agencyCode, openDate, closeDate, status, cfdaList,
     }));
-    return NextResponse.json({ hits, hitCount: hits.length, source: "snapshot" });
+    return NextResponse.json({ hits, hitCount: matching.length, source: "snapshot" });
   }
 }

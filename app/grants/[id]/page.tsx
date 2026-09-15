@@ -15,6 +15,7 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
   const { id } = use(params);
   const { org, hydrated, fitReports, saveFitReport, pipeline, addToPipeline } = useGranted();
   const [grant, setGrant] = useState<GrantDetail | null>(null);
+  const [source, setSource] = useState("live");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -25,11 +26,15 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the detail view when the URL id changes.
+    setLoading(true);
+    setError(null);
+    setGrant(null);
     fetch(`/api/grants/${id}`)
       .then(async (r) => {
         const json = await r.json();
         if (!r.ok) throw new Error(json.error ?? "Failed to load.");
-        if (!cancelled) setGrant(json.grant);
+        if (!cancelled) { setGrant(json.grant); setSource(json.source); }
       })
       .catch((e) => !cancelled && setError(e.message))
       .finally(() => !cancelled && setLoading(false));
@@ -41,6 +46,7 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
   async function analyze() {
     if (!org) return;
     setAnalyzing(true);
+    setError(null);
     try {
       const res = await fetch("/api/ai/match", {
         method: "POST",
@@ -50,6 +56,7 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Analysis failed.");
       saveFitReport(json.report);
+      if (json.warning) setError(json.warning);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Analysis failed.");
     } finally {
@@ -125,7 +132,7 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
               {saved ? "✓ In pipeline" : "+ Save to pipeline"}
             </button>
             {grant.externalUrl && (
-              <a href={grant.externalUrl} target="_blank" rel="noreferrer" className="btn-ghost text-xs">
+              <a href={/^https?:\/\//.test(grant.externalUrl) ? grant.externalUrl : `https://www.grants.gov/search-results-detail/${grant.id}`} target="_blank" rel="noreferrer" className="btn-ghost text-xs">
                 Full notice ↗
               </a>
             )}
@@ -139,7 +146,7 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
           </span>
           {(grant.awardFloor !== null || grant.awardCeiling !== null) && (
             <span className="pill border border-line bg-card text-ink-soft">
-              Awards {formatMoney(grant.awardFloor ?? 0)}–{formatMoney(grant.awardCeiling)}
+              {grant.awardFloor === null ? "Awards up to " : "Awards "}{grant.awardFloor !== null && `${formatMoney(grant.awardFloor)}–`}{formatMoney(grant.awardCeiling)}
             </span>
           )}
           {grant.costSharing && (
@@ -157,6 +164,8 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
           )}
         </div>
 
+        <p className="mt-4 text-xs text-ink-soft">{source === "snapshot" ? "Saved Grants.gov snapshot. Verify current terms and dates at the source." : "Source: Grants.gov. Confirm eligibility and submission requirements in the full notice."} <a className="underline" target="_blank" rel="noreferrer" href={`https://www.grants.gov/search-results-detail/${grant.id}`}>View source ↗</a></p>
+        {error && <p role="alert" className="mt-4 rounded-xl bg-amber-soft p-4 text-sm text-amber-strong">{error}</p>}
         {/* synopsis */}
         <div className="card mt-6 p-6">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
@@ -203,7 +212,7 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
           ) : (
             <p className="mt-3 text-sm text-ink-soft">
               The Analyst reads this funder&apos;s eligibility rules, priorities, and award economics
-              against your profile — and tells you honestly whether your hours belong here.
+              against your profile ; and tells you honestly whether your hours belong here.
             </p>
           )}
         </div>
@@ -211,12 +220,12 @@ export default function GrantWorkspace({ params }: { params: Promise<{ id: strin
         {/* drafting studio */}
         <div className="mt-5">
           {org ? (
-            <DraftStudio grant={grant} fit={report ?? null} />
+            <DraftStudio key={grant.id} grant={grant} fit={report ?? null} />
           ) : (
             hydrated && (
               <EmptyState
                 title="Drafting needs your organization profile"
-                body="The Writer grounds every sentence in your real programs and outcomes — set up your profile to start."
+                body="The Writer grounds every sentence in your real programs and outcomes ; set up your profile to start."
                 action={
                   <Link href="/onboarding" className="btn-primary">
                     Set up your organization

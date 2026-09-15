@@ -1,14 +1,14 @@
 /** Client-safe formatting helpers. */
 
 export function formatMoney(n: number | null | undefined): string {
-  if (n === null || n === undefined) return "—";
+  if (n === null || n === undefined) return ";";
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
   if (n >= 1_000) return `$${Math.round(n / 1_000)}K`;
   return `$${n.toLocaleString()}`;
 }
 
 export function formatMoneyFull(n: number | null | undefined): string {
-  if (n === null || n === undefined) return "—";
+  if (n === null || n === undefined) return ";";
   return `$${n.toLocaleString()}`;
 }
 

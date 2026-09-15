@@ -1,6 +1,6 @@
 /**
  * Thin, typed client for the public Grants.gov REST API.
- * No API key required — this is live US federal grant data.
+ * No API key required ; this is live US federal grant data.
  * Docs: https://grants.gov/api/
  */
 
@@ -78,6 +78,7 @@ interface RawOppHit {
 /** Strip stray HTML entities Grants.gov sometimes leaves in titles. */
 export function cleanTitle(raw: string): string {
   return raw
+    .replace(/&rsquo;|&lsquo;/g, "’").replace(/&rdquo;|&ldquo;/g, '"').replace(/&ndash;/g, "–").replace(/&mdash;/g, ";")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&#39;/g, "'")
@@ -114,6 +115,7 @@ export async function searchGrants(params: SearchParams): Promise<{
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
     // Grant listings change slowly; a short cache keeps the UI snappy.
+    signal: AbortSignal.timeout(12_000),
     next: { revalidate: 300 },
   });
   if (!res.ok) throw new Error(`Grants.gov search failed: HTTP ${res.status}`);
@@ -140,6 +142,7 @@ export async function fetchGrantDetail(opportunityId: string): Promise<GrantDeta
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ opportunityId: Number(opportunityId) }),
+    signal: AbortSignal.timeout(12_000),
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error(`Grants.gov fetchOpportunity failed: HTTP ${res.status}`);
@@ -147,7 +150,7 @@ export async function fetchGrantDetail(opportunityId: string): Promise<GrantDeta
   if (json.errorcode !== 0) throw new Error(`Grants.gov error: ${json.msg}`);
 
   const d = json.data;
-  // Grants.gov returns errorcode 0 with an empty payload for unknown ids —
+  // Grants.gov returns errorcode 0 with an empty payload for unknown ids ;
   // treat that as not-found instead of fabricating a grant.
   if (!d || d.id === undefined || d.id === null) {
     throw new Error(`Opportunity ${opportunityId} not found on Grants.gov.`);
@@ -175,7 +178,7 @@ export async function fetchGrantDetail(opportunityId: string): Promise<GrantDeta
     totalFunding: parseMoney(syn.estimatedFunding),
     eligibilityDesc: stripHtml(syn.applicantEligibilityDesc ?? ""),
     eligibilityCodes,
-    costSharing: Boolean(syn.costSharing),
+    costSharing: syn.costSharing === true || syn.costSharing === "true" || syn.costSharing === "Yes",
     fundingCategories: (syn.fundingActivityCategories ?? [])
       .map((c: { id?: string }) => c.id ?? "")
       .filter(Boolean),
@@ -193,6 +196,7 @@ export function stripHtml(raw: string): string {
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<[^>]+>/g, "")
+    .replace(/&rsquo;|&lsquo;/g, "’").replace(/&rdquo;|&ldquo;/g, '"').replace(/&ndash;/g, "–").replace(/&mdash;/g, ";")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&#39;/g, "'")

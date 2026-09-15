@@ -51,7 +51,7 @@ export const FitAnalysisSchema = z.object({
     .array(z.string())
     .max(4)
     .describe(
-      "If applying: the specific angles most likely to win with THIS funder — which org strengths to lead with, which funder priorities to mirror. Empty if skipping.",
+      "If applying: the specific angles most likely to win with THIS funder ; which org strengths to lead with, which funder priorities to mirror. Empty if skipping.",
     ),
 });
 export type FitAnalysis = z.infer<typeof FitAnalysisSchema>;
@@ -136,8 +136,8 @@ export const ExtractedProfileSchema = z.object({
     "small_business",
     "other",
   ]),
-  annualBudgetUsd: z.number().describe("Best estimate; 0 if truly unknown."),
-  staffCount: z.number().describe("Best estimate; 0 if truly unknown."),
+  annualBudgetUsd: z.number().describe("Extract only the stated number; use 0 if unknown. Never estimate."),
+  staffCount: z.number().describe("Extract only the stated number; use 0 if unknown. Never estimate."),
   city: z.string(),
   state: z.string().describe("Two-letter US state code if determinable, else empty string."),
   yearFounded: z.number().nullable(),
@@ -145,7 +145,7 @@ export const ExtractedProfileSchema = z.object({
   achievements: z
     .array(z.string())
     .max(5)
-    .describe("Quantified outcomes if present. Never invent numbers — only extract what's stated."),
+    .describe("Quantified outcomes if present. Never invent numbers ; only extract what's stated."),
   populationsServed: z.array(z.string()).max(5),
   grantHistory: z.string().describe("Any mentioned past grants/funders, else empty string."),
 });

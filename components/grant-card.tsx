@@ -29,6 +29,7 @@ export function GrantCard({ grant, featured }: { grant: GrantSummary; featured?:
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Analysis failed.");
       saveFitReport(json.report);
+      if (json.warning) setError(json.warning);
       setExpanded(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Analysis failed.");

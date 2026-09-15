@@ -1,9 +1,12 @@
+import { eligibilityVerdict } from "@/lib/fit";
+import { guardAiRequest } from "@/lib/request-guard";
 import { NextRequest, NextResponse } from "next/server";
-import { friendlyAiError, hasAnthropicKey } from "@/lib/ai/client";
+import { friendlyAiError, hasAiKey } from "@/lib/ai/client";
 import { draftProposal } from "@/lib/ai/draft";
-import { DEMO_GRANTS, FEATURED_DEMO_GRANT_ID } from "@/lib/demo";
+import { DEMO_GRANTS, DEMO_ORG, FEATURED_DEMO_GRANT_ID } from "@/lib/demo";
 import { demoDraftEvents } from "@/lib/demo-draft";
 import { fetchGrantDetail } from "@/lib/grantsgov";
+import { z } from "zod";
 import { OrgProfileZ } from "@/lib/validate";
 import type { DraftEvent } from "@/lib/types";
 
@@ -16,24 +19,26 @@ export const maxDuration = 600;
  * featured opportunity so the full experience works without an API key.
  */
 export async function POST(req: NextRequest) {
+  const denied = guardAiRequest(req);
+  if (denied) return denied;
   let grantId: string;
   let org: ReturnType<typeof OrgProfileZ.parse>;
   let fit: unknown;
   try {
     const body = await req.json();
-    grantId = String(body.grantId ?? "");
+    grantId = z.string().regex(/^\d+$/).parse(String(body.grantId ?? ""));
     org = OrgProfileZ.parse(body.org);
-    fit = body.fit ?? null;
+    fit = body.fit ? z.object({verdict: z.string().max(3000), alignment: z.object({strengths: z.array(z.string().max(1000)).max(8), gaps: z.array(z.string().max(1000)).max(8)}), winStrategy: z.array(z.string().max(1000)).max(8)}).passthrough().parse(body.fit) : null;
   } catch {
     return NextResponse.json(
-      { error: "Invalid request — send a grantId and a complete org profile." },
+      { error: "Invalid request ; send a grantId and a complete org profile." },
       { status: 400 },
     );
   }
 
-  const live = hasAnthropicKey();
+  const live = hasAiKey();
 
-  if (!live && grantId !== FEATURED_DEMO_GRANT_ID) {
+  if (!live && (grantId !== FEATURED_DEMO_GRANT_ID || org.name !== DEMO_ORG.name)) {
     return NextResponse.json(
       {
         error:
@@ -48,6 +53,7 @@ export async function POST(req: NextRequest) {
   // Aborting this controller stops in-flight Claude calls when the client
   // disconnects, so a closed tab never keeps burning tokens.
   const upstream = new AbortController();
+  req.signal.addEventListener("abort", () => upstream.abort(), { once: true });
 
   let events: AsyncGenerator<DraftEvent>;
   if (live) {
@@ -63,6 +69,7 @@ export async function POST(req: NextRequest) {
         );
       }
     }
+    if (eligibilityVerdict(grant, org).verdict === "ineligible") return NextResponse.json({error:"Your organization does not match this opportunity’s applicant requirements. Choose another grant before drafting."},{status:409});
     // fit is advisory context for the Strategist; shape-checked loosely.
     const fitReport =
       fit && typeof fit === "object" && "verdict" in (fit as object)
@@ -107,7 +114,7 @@ export async function POST(req: NextRequest) {
       }
     },
     cancel() {
-      // Client disconnected — stop the producer loop and abort model calls.
+      // Client disconnected ; stop the producer loop and abort model calls.
       closed = true;
       upstream.abort();
     },

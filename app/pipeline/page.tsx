@@ -56,8 +56,8 @@ export default function PipelinePage() {
         ) : (
           <>
             {/* summary strip */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              <div className="card p-5">
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="card min-w-0 p-5">
                 <div className="font-display text-3xl font-semibold text-pine-950">
                   {pipeline.length}
                 </div>
@@ -65,20 +65,20 @@ export default function PipelinePage() {
                   opportunit{pipeline.length === 1 ? "y" : "ies"} in play
                 </p>
               </div>
-              <div className="card p-5">
+              <div className="card min-w-0 p-5">
                 <div className="font-display text-3xl font-semibold text-pine-950">
-                  {nearest ? formatDate(nearest.grant.closeDate) : "—"}
+                  {nearest ? formatDate(nearest.grant.closeDate) : "Not available"}
                 </div>
                 <p className="mt-1 truncate text-sm text-ink-soft">
                   {nearest ? `next deadline · ${nearest.grant.title}` : "no upcoming deadlines"}
                 </p>
               </div>
-              <div className="card p-5">
+              <div className="card min-w-0 p-5">
                 <div className="font-display text-3xl font-semibold text-pine-600">
-                  {totalEv > 0 ? `+${formatMoneyFull(totalEv)}` : "—"}
+                  {totalEv > 0 ? `+${formatMoneyFull(totalEv)}` : "Not available"}
                 </div>
                 <p className="mt-1 text-sm text-ink-soft">
-                  combined expected value of analyzed positive-EV grants
+                  sum of positive planning estimates, not secured funding
                 </p>
               </div>
             </div>
@@ -114,8 +114,9 @@ export default function PipelinePage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
                       <select
+                        aria-label={`Stage for ${p.grant.title}`}
                         className="input w-auto py-1.5 text-xs"
                         value={p.stage}
                         onChange={(e) =>
@@ -131,11 +132,13 @@ export default function PipelinePage() {
                       <button
                         onClick={() => removeFromPipeline(p.grant.id)}
                         className="btn-ghost text-xs text-ink-faint"
+                        aria-label={`Remove ${p.grant.title} from pipeline`}
                         title="Remove from pipeline"
                       >
                         ✕
                       </button>
                     </div>
+                    <textarea aria-label={`Notes for ${p.grant.title}`} placeholder="Next step, partner to contact, or submission notes…" value={p.notes || ""} onChange={e => updatePipeline(p.grant.id,{notes:e.target.value})} className="input basis-full min-h-16" />
                   </div>
                 );
               })}

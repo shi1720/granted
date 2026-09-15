@@ -1,4 +1,4 @@
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { flagUnsupportedFigures } from "./grounding";
 import type {
   DraftEvent,
   FitReport,
@@ -8,7 +8,7 @@ import type {
   ProposalSection,
   ReviewNote,
 } from "../types";
-import { MODEL, anthropic, estimateCostUsd } from "./client";
+import { MODEL, PROVIDER, structured, streamText, estimateCostUsd } from "./client";
 import {
   REVISER_SYSTEM,
   REVIEWER_SYSTEM,
@@ -44,7 +44,7 @@ export class SectionStreamParser {
       this.buffer = this.buffer.slice(nl + 1);
       this.handleLine(line);
     }
-    // Flush the partial tail early for smooth streaming — unless it could
+    // Flush the partial tail early for smooth streaming ; unless it could
     // still turn into a marker line.
     if (this.buffer && !this.couldBeMarkerPrefix(this.buffer) && this.current) {
       this.onText(this.current, this.buffer);
@@ -120,7 +120,6 @@ export async function* draftProposal({
   fit,
   signal,
 }: DraftInput): AsyncGenerator<DraftEvent> {
-  const client = anthropic();
   const totals: UsageTotals = { inputTokens: 0, outputTokens: 0 };
   const shared = `${orgContext(org)}\n\n${grantContext(grant)}${
     fit
@@ -135,23 +134,10 @@ export async function* draftProposal({
     message: "Reading the funder's synopsis and planning the narrative…",
   };
 
-  const planResp = await client.messages.parse(
-    {
-      model: MODEL,
-      max_tokens: 8000,
-      system: STRATEGIST_SYSTEM,
-      messages: [
-        {
-          role: "user",
-          content: `${shared}\n\nDesign the proposal plan for this organization and opportunity.`,
-        },
-      ],
-      output_config: { format: zodOutputFormat(PlanSchema) },
-    },
-    { signal },
-  );
+  const planResp = await structured(PlanSchema, STRATEGIST_SYSTEM, `${shared}\n\nDesign the proposal plan for this organization and opportunity.`, 8000, signal);
   addUsage(totals, planResp.usage);
   const plan = planResp.parsed_output;
+  if (new Set(plan.sections.map(s => s.id)).size !== plan.sections.length) throw new Error("The proposal plan contained duplicate sections. Please try again.");
   if (!plan) throw new Error("The Strategist couldn't produce a plan. Try again.");
 
   yield {
@@ -180,7 +166,7 @@ export async function* draftProposal({
   yield* streamSections({
     system: WRITER_SYSTEM,
     prompt: `${shared}\n\n## Proposal plan\nTitle: ${plan.proposalTitle}\nStrategy: ${plan.strategy}\n\nSections to write, in order:\n${plan.sections
-      .map((s) => `- @@${s.id}@@ "${s.title}" (~${s.wordTarget} words) — ${s.guidance}`)
+      .map((s) => `- @@${s.id}@@ "${s.title}" (~${s.wordTarget} words) ; ${s.guidance}`)
       .join("\n")}\n\nWrite the full draft now, using the exact @@section_id@@ markers.`,
     maxTokens: 16000,
     sections,
@@ -203,21 +189,7 @@ export async function* draftProposal({
     .map((s) => `@@${s.id}@@ ${s.title}\n${s.content.trim()}`)
     .join("\n\n");
 
-  const reviewResp = await client.messages.parse(
-    {
-      model: MODEL,
-      max_tokens: 8000,
-      system: REVIEWER_SYSTEM,
-      messages: [
-        {
-          role: "user",
-          content: `${grantContext(grant)}\n\n## Draft proposal (sections keyed by id)\n${draftText}\n\nScore this draft and list your notes.`,
-        },
-      ],
-      output_config: { format: zodOutputFormat(ReviewSchema) },
-    },
-    { signal },
-  );
+  const reviewResp = await structured(ReviewSchema, REVIEWER_SYSTEM, `${shared}\n\n## Draft proposal (sections keyed by id)\n${draftText}\n\nScore this draft and list your notes.`, 8000, signal);
   addUsage(totals, reviewResp.usage);
   const review = reviewResp.parsed_output;
   if (!review) throw new Error("The Reviewer couldn't score the draft. Try again.");
@@ -270,25 +242,11 @@ export async function* draftProposal({
     });
 
     // Rescore just the revised sections against the original notes.
-    const rescoreResp = await client.messages.parse(
-      {
-        model: MODEL,
-        max_tokens: 2000,
-        system: REVIEWER_SYSTEM,
-        messages: [
-          {
-            role: "user",
-            content: `Your panel previously scored this draft ${Math.round(review.score)}/100 with these notes:\n${notes
+    const rescoreResp = await structured(RescoreSchema, REVIEWER_SYSTEM, `Your panel previously scored this draft ${Math.round(review.score)}/100 with these notes:\n${notes
               .map((n) => `- [${n.severity}] (${n.sectionId}) ${n.issue}`)
               .join("\n")}\n\nThe flagged sections have been revised:\n${flagged
               .map((id) => `@@${id}@@\n${sections.get(id)!.content.trim()}`)
-              .join("\n\n")}\n\nGive the updated overall score.`,
-          },
-        ],
-        output_config: { format: zodOutputFormat(RescoreSchema) },
-      },
-      { signal },
-    );
+              .join("\n\n")}\n\nGive the updated overall score.`, 2000, signal);
     addUsage(totals, rescoreResp.usage);
     const rescore = rescoreResp.parsed_output;
     if (rescore) scoreAfter = Math.round(rescore.score);
@@ -300,17 +258,21 @@ export async function* draftProposal({
     };
   }
 
+  const grounded = flagUnsupportedFigures([...sections.values()], shared);
+  if (grounded.flagged.length) {
+    for (const id of new Set(grounded.flagged)) notes.push({sectionId:id, severity:"critical", issue:"The final evidence check found figures not present in the supplied facts.", fix:"Resolve the highlighted evidence placeholders before using this section."});
+  }
   const proposal: Proposal = {
     grantId: grant.id,
     grantTitle: grant.title,
     orgName: org.name,
     title: plan.proposalTitle,
-    sections: [...sections.values()].map((s) => ({ ...s, content: s.content.trim() })),
+    sections: grounded.sections.map((s) => ({ ...s, content: s.content.trim() })),
     reviewNotes: notes,
     scoreBefore: Math.round(review.score),
     scoreAfter,
     generatedAt: new Date().toISOString(),
-    engine: "claude",
+    engine: PROVIDER,
     usage: {
       inputTokens: totals.inputTokens,
       outputTokens: totals.outputTokens,
@@ -361,7 +323,7 @@ async function* streamSections(input: StreamSectionsInput): AsyncGenerator<Draft
     (id) => {
       closeOpen();
       if (!sections.has(id)) {
-        // The model opened a section outside the plan — tolerate it so the
+        // The model opened a section outside the plan ; tolerate it so the
         // content isn't lost, titled from the plan when possible.
         sections.set(id, {
           id,
@@ -384,33 +346,16 @@ async function* streamSections(input: StreamSectionsInput): AsyncGenerator<Draft
     },
   );
 
-  const stream = anthropic().messages.stream(
-    {
-      model: MODEL,
-      max_tokens: input.maxTokens,
-      system: input.system,
-      messages: [{ role: "user", content: input.prompt }],
-    },
-    { signal: input.signal },
-  );
-
-  for await (const event of stream) {
-    if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-      parser.push(event.delta.text);
-    }
+  for await (const event of streamText(input.system, input.prompt, input.maxTokens, input.signal)) {
+    if (event.text) parser.push(event.text);
+    if (event.usage) input.onUsage?.(event.usage);
     while (pending.length) yield pending.shift()!;
   }
   parser.flush();
   closeOpen();
   while (pending.length) yield pending.shift()!;
-
-  const final = await stream.finalMessage();
-  input.onUsage?.(final.usage);
-  if (final.stop_reason === "max_tokens") {
-    throw new Error("The draft was cut off by the token limit. Try again.");
-  }
-  if (final.stop_reason === "refusal") {
-    throw new Error("Claude declined to draft this content.");
+  for (const section of sections.values()) {
+    if (!section.content.trim()) throw new Error("A planned section was missing from the draft. Please try again.");
   }
 }
 

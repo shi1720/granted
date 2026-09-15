@@ -20,9 +20,11 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const seeded = useRef(false);
+  const latestSearch = useRef(0);
 
   const search = useCallback(
     async (kw: string, cats: string[]) => {
+      const requestId = ++latestSearch.current;
       setLoading(true);
       setError(null);
       try {
@@ -32,6 +34,7 @@ export default function DiscoverPage() {
           body: JSON.stringify({ keyword: kw, fundingCategories: cats, rows: 25 }),
         });
         const json = await res.json();
+        if (requestId !== latestSearch.current) return;
         if (!res.ok) throw new Error(json.error ?? "Search failed.");
         // Surface the featured demo opportunity first when present.
         const sorted = [...json.hits].sort((a: GrantSummary, b: GrantSummary) =>
@@ -41,9 +44,10 @@ export default function DiscoverPage() {
         setHitCount(json.hitCount);
         setSource(json.source);
       } catch (e) {
+        if (requestId !== latestSearch.current) return;
         setError(e instanceof Error ? e.message : "Search failed.");
       } finally {
-        setLoading(false);
+        if (requestId === latestSearch.current) setLoading(false);
       }
     },
     [],
@@ -67,7 +71,7 @@ export default function DiscoverPage() {
         <main className="mx-auto max-w-6xl px-5 py-16">
           <EmptyState
             title="First, tell Granted who you are"
-            body="The Analyst can't judge fit without knowing your organization. Set up your profile — or load the demo org — and come back."
+            body="The Analyst can't judge fit without knowing your organization. Set up your profile ; or load the demo org ; and come back."
             action={
               <Link href="/onboarding" className="btn-primary">
                 Set up your organization
@@ -112,7 +116,8 @@ export default function DiscoverPage() {
           <div className="flex flex-wrap gap-3">
             <input
               className="input flex-1 min-w-56"
-              placeholder="Search keywords — e.g. youth workforce, food access, housing…"
+              aria-label="Search grants"
+              placeholder="Search keywords ; e.g. youth workforce, food access, housing…"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
@@ -127,6 +132,7 @@ export default function DiscoverPage() {
                 <button
                   key={c.code}
                   type="button"
+                  aria-pressed={on}
                   onClick={() => {
                     const next = on
                       ? categories.filter((x) => x !== c.code)
@@ -151,7 +157,7 @@ export default function DiscoverPage() {
           <p className="mt-6 rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>
         )}
 
-        {/* Deterministic demo path — both are real, open opportunities. */}
+        {/* Deterministic demo path ; both are real, open opportunities. */}
         <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-pine-100 bg-pine-50/60 px-4 py-3">
           <span className="text-sm font-semibold text-pine-900">The 60-second tour:</span>
           <Link href={`/grants/${FEATURED_DEMO_GRANT_ID}`} className="btn-primary text-xs px-4 py-2">
@@ -161,7 +167,7 @@ export default function DiscoverPage() {
             See an honest &ldquo;skip&rdquo; verdict →
           </Link>
           <span className="text-xs text-ink-faint">
-            Both are real opportunities — the second looks like a perfect fit, until you read the eligibility rules.
+            Real Grants.gov examples. Dates may have changed; check each notice before applying.
           </span>
         </div>
 
@@ -180,7 +186,7 @@ export default function DiscoverPage() {
           {hits && hits.length === 0 && (
             <EmptyState
               title="No open opportunities matched"
-              body="Try broader keywords or fewer category filters — federal titles are often bureaucratic."
+              body="Try broader keywords or fewer category filters ; federal titles are often bureaucratic."
             />
           )}
         </div>

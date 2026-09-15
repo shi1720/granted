@@ -3,7 +3,7 @@
 import { Fragment, type ReactNode } from "react";
 
 /**
- * Minimal markdown renderer for proposal prose — paragraphs, bullet lists,
+ * Minimal markdown renderer for proposal prose ; paragraphs, bullet lists,
  * **bold**, and highlighted [ADD: …] placeholders. Content is rendered as
  * React text nodes, never injected as HTML.
  */
@@ -35,7 +35,7 @@ function renderInline(text: string): ReactNode {
   return parts.map((part, i) => {
     if (part.startsWith("[ADD:")) {
       return (
-        <span key={i} className="placeholder-add" title="Granted never invents your data — fill this in before submitting.">
+        <span key={i} className="placeholder-add" title="Granted never invents your data ; fill this in before submitting.">
           {part}
         </span>
       );

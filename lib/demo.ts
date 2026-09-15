@@ -2,7 +2,7 @@
  * Demo mode fixtures.
  *
  * DEMO_GRANTS is a snapshot of real Grants.gov opportunities (fetched from the
- * live API — see /docs/ARCHITECTURE.md). DEMO_ORG is a realistic composite of
+ * live API ; see /docs/ARCHITECTURE.md). DEMO_ORG is a realistic composite of
  * the small workforce-development nonprofits Granted is built for. The demo
  * proposal below is Claude-authored content curated for the demo, replayed
  * with realistic pacing when no API key is configured so the product is fully
@@ -35,7 +35,7 @@ export const DEMO_ORG: OrgProfile = {
   name: "Brightpath Youth Alliance",
   tagline: "Paid job training and reentry support for opportunity youth in central Ohio.",
   mission:
-    "Brightpath Youth Alliance helps young people ages 16–24 who are disconnected from school and work — including justice-involved youth — build lasting careers through paid workforce training, one-on-one mentorship, and industry-recognized credentials.",
+    "Brightpath Youth Alliance helps young people ages 16–24 who are disconnected from school and work ; including justice-involved youth ; build lasting careers through paid workforce training, one-on-one mentorship, and industry-recognized credentials.",
   focusAreas: [
     "youth workforce development",
     "reentry and justice-involved youth",
@@ -70,7 +70,7 @@ export const DEMO_ORG: OrgProfile = {
 };
 
 /** Sample freeform text for the "paste your mission" onboarding path. */
-export const DEMO_FREEFORM = `Brightpath Youth Alliance (Columbus, Ohio, founded 2016) is a 501(c)(3) nonprofit helping young people ages 16–24 who are disconnected from school and work — including justice-involved youth — build lasting careers.
+export const DEMO_FREEFORM = `Brightpath Youth Alliance (Columbus, Ohio, founded 2016) is a 501(c)(3) nonprofit helping young people ages 16–24 who are disconnected from school and work ; including justice-involved youth ; build lasting careers.
 
 Our programs: CareerLaunch, a 12-week paid workforce training program in construction trades and logistics ending in an OSHA-10 credential and direct employer placement. Second Shift, reentry navigation and employment placement for justice-involved young adults, in partnership with the Franklin County juvenile court and two adult probation offices. Mentor Network, one-on-one volunteer mentors matched with every participant for 12 months.
 
@@ -85,7 +85,7 @@ We operate on a $1.2M annual budget with 11 staff. Past funding: City of Columbu
 export const DEMO_PLAN: Plan = {
   proposalTitle: "Second Shift Expanded: Education-to-Employment Pathways for Reentering Youth in Central Ohio",
   strategy:
-    "BJA is buying three things in this notice: credentialed vocational training aligned to the local job market, measurable job placement and retention, and reduced recidivism. Brightpath already runs exactly this model and — unusually for an applicant this size — has a recidivism number that beats the county baseline by 21 points. The through-line: don't propose a new program, propose scaling a proven one into the jail-to-community transition window BJA cares about, with the court partnership as the credibility anchor.",
+    "BJA is buying three things in this notice: credentialed vocational training aligned to the local job market, measurable job placement and retention, and reduced recidivism. Brightpath already runs exactly this model and ; unusually for an applicant this size ; has a recidivism number that beats the county baseline by 21 points. The through-line: don't propose a new program, propose scaling a proven one into the jail-to-community transition window BJA cares about, with the court partnership as the credibility anchor.",
   sections: [
     {
       id: "executive_summary",
@@ -132,7 +132,7 @@ export const DEMO_PLAN: Plan = {
   ],
 };
 
-/** First-draft content — statement_of_need is deliberately the weaker section the Reviewer flags. */
+/** First-draft content ; statement_of_need is deliberately the weaker section the Reviewer flags. */
 export const DEMO_SECTIONS_V1: Record<string, string> = {
   executive_summary: `Brightpath Youth Alliance requests $985,000 over three years under the FY 2026 Second Chance Act Improving Reentry Education and Employment Outcomes program to expand Second Shift, our education-to-employment pathway for justice-involved young adults in Franklin County, Ohio.
 
@@ -144,17 +144,17 @@ With BJA support, Brightpath will extend Second Shift into the pre-release windo
 
 Franklin County is no exception. Hundreds of young adults return to Columbus neighborhoods from confinement each year, most without a diploma-connected credential or a job lined up. The county's young-adult recidivism baseline of 32% reflects what happens when the transition window is left unsupported.
 
-The need is not for another training program in general: it is for training connected to the moment of release. Brightpath's intake data shows that participants who enroll within 30 days of release complete at higher rates than those who find us months later. Today there is no systematic bridge between Franklin County facilities and workforce programming — referrals are informal, and young people fall through the gap between systems.
+The need is not for another training program in general: it is for training connected to the moment of release. Brightpath's intake data shows that participants who enroll within 30 days of release complete at higher rates than those who find us months later. Today there is no systematic bridge between Franklin County facilities and workforce programming ; referrals are informal, and young people fall through the gap between systems.
 
-BJA's own framing of this opportunity — improving academic and vocational programs available to youth in confinement and expanding workforce development that results in job readiness, employment attainment, and retention — describes precisely the gap Second Shift Expanded is built to close.`,
+BJA's own framing of this opportunity ; improving academic and vocational programs available to youth in confinement and expanding workforce development that results in job readiness, employment attainment, and retention ; describes precisely the gap Second Shift Expanded is built to close.`,
 
   project_design: `Second Shift Expanded scales a working model across the full transition window, in four connected stages that track BJA's program goals.
 
-**Stage 1: Pre-release enrollment (days −60 to 0).** Brightpath reentry navigators will hold weekly enrollment sessions at two partner facilities, in coordination with the Franklin County juvenile court and adult probation offices we already work with. Each enrollee completes an individualized education and employment plan before release — the plan BJA's notice asks applicants to center.
+**Stage 1: Pre-release enrollment (days −60 to 0).** Brightpath reentry navigators will hold weekly enrollment sessions at two partner facilities, in coordination with the Franklin County juvenile court and adult probation offices we already work with. Each enrollee completes an individualized education and employment plan before release ; the plan BJA's notice asks applicants to center.
 
-**Stage 2: Paid vocational training (weeks 1–12).** Within 30 days of release, participants enter CareerLaunch, our 12-week paid training program in construction trades and logistics. Participants earn while they train — removing the survival-income pressure that pushes reentering young adults back toward instability — and finish with an OSHA-10 credential. Training content aligns to the central Ohio labor market, where construction and logistics employers face persistent entry-level shortages.
+**Stage 2: Paid vocational training (weeks 1–12).** Within 30 days of release, participants enter CareerLaunch, our 12-week paid training program in construction trades and logistics. Participants earn while they train ; removing the survival-income pressure that pushes reentering young adults back toward instability ; and finish with an OSHA-10 credential. Training content aligns to the central Ohio labor market, where construction and logistics employers face persistent entry-level shortages.
 
-**Stage 3: Direct placement (by week 16).** Brightpath placement staff match completers with employer partners for interviews before graduation. Our 2025 placement rate — 64% of completers in jobs paying $18/hour or more within 90 days — is the program's proof of concept; this project sets a 65% target at expanded scale.
+**Stage 3: Direct placement (by week 16).** Brightpath placement staff match completers with employer partners for interviews before graduation. Our 2025 placement rate ; 64% of completers in jobs paying $18/hour or more within 90 days ; is the program's proof of concept; this project sets a 65% target at expanded scale.
 
 **Stage 4: Retention mentorship (months 1–12).** Every participant is matched with a trained volunteer mentor for 12 months, with structured monthly check-ins covering employment retention, court obligations, and next credentials. Mentorship is Brightpath's retention engine and the mechanism behind our 11% completer recidivism rate.
 
@@ -170,7 +170,7 @@ Targets are set from Brightpath's actual 2025 performance, adjusted conservative
 
   organizational_capacity: `Brightpath Youth Alliance has run workforce programming for opportunity youth in Columbus since 2016 and reentry-focused programming since 2021. The organization operates on a $1.2M annual budget with 11 staff, and served 340 young people in 2025.
 
-Three capacities matter for this project. First, the court relationship: Second Shift operates in active partnership with the Franklin County juvenile court and two adult probation offices, which refer participants and share outcome data — the institutional plumbing a pre-release program requires. Second, the employer network: CareerLaunch places completers directly with construction and logistics employers, and our $18/hour placement floor reflects real demand, not aspiration. Third, delivery discipline: a 78% completion rate and 92% credential attainment among completers demonstrate that Brightpath can execute the model this proposal scales.
+Three capacities matter for this project. First, the court relationship: Second Shift operates in active partnership with the Franklin County juvenile court and two adult probation offices, which refer participants and share outcome data ; the institutional plumbing a pre-release program requires. Second, the employer network: CareerLaunch places completers directly with construction and logistics employers, and our $18/hour placement floor reflects real demand, not aspiration. Third, delivery discipline: a 78% completion rate and 92% credential attainment among completers demonstrate that Brightpath can execute the model this proposal scales.
 
 We are direct about being a first-time federal grantee. To manage that transition responsibly, this budget funds a part-time grants manager dedicated to federal compliance, and Brightpath will contract with [ADD: name of fiscal/compliance consultant, if engaged] for JustGrants reporting setup in the first 90 days. Our finance function already administers a federal pass-through (City of Columbus CDBG subaward), giving us working familiarity with federal cost principles.`,
 
@@ -180,7 +180,7 @@ We are direct about being a first-time federal grantee. To manage that transitio
 
 **Recidivism measurement.** Reconviction and reincarceration data for participants will be tracked at 6, 12, and 24 months post-release under our existing data-sharing arrangement with Franklin County partners, benchmarked against the county's young-adult baseline.
 
-**Learning.** A third-party evaluator [ADD: evaluator name or procurement plan] will conduct an annual implementation review — enrollment timing, dosage, and mentorship engagement — so the model improves during the grant period rather than after it. Findings will be shared with BJA and with the National Reentry Resource Center's practitioner network.`,
+**Learning.** A third-party evaluator [ADD: evaluator name or procurement plan] will conduct an annual implementation review ; enrollment timing, dosage, and mentorship engagement ; so the model improves during the grant period rather than after it. Findings will be shared with BJA and with the National Reentry Resource Center's practitioner network.`,
 
   budget_narrative: `Brightpath requests $985,000 over 36 months. The allocation reflects a personnel-driven direct-service model.
 
@@ -201,13 +201,13 @@ export const DEMO_REVIEW_NOTES: ReviewNote[] = [
     severity: "critical",
     issue:
       "The need statement leans on national framing and asserts 'hundreds of young adults return each year' without a sourced local figure. BJA panels score localized, quantified need; an unsourced estimate reads as a placeholder.",
-    fix: "Anchor the section in specific Franklin County data — annual releases of 16–24-year-olds, credential rates at exit — with sources, and cut the generic national opening.",
+    fix: "Anchor the section in specific Franklin County data ; annual releases of 16–24-year-olds, credential rates at exit ; with sources, and cut the generic national opening.",
   },
   {
     sectionId: "statement_of_need",
     severity: "important",
     issue: "The strongest evidence in the application (the 30-day enrollment window insight from intake data) is buried in the third paragraph.",
-    fix: "Lead the local analysis with the enrollment-timing finding — it is the applicant's own data and directly justifies the pre-release design.",
+    fix: "Lead the local analysis with the enrollment-timing finding ; it is the applicant's own data and directly justifies the pre-release design.",
   },
   {
     sectionId: "project_design",
@@ -230,11 +230,11 @@ export const DEMO_SCORE_AFTER = 88;
 export const DEMO_REVISED_SECTIONS: Record<string, string> = {
   statement_of_need: `In Franklin County, the transition from confinement to community is where young people are lost. [ADD: exact count from Franklin County partners] young adults ages 16–24 were released from county juvenile and adult facilities in the most recent reporting year, the overwhelming majority without an industry-recognized credential or employment arranged at exit, per intake assessments shared by our court and probation partners. The county's 32% young-adult recidivism baseline is the measurable cost of that unsupported window.
 
-Brightpath's own intake data sharpens the picture: participants who enroll in workforce programming within 30 days of release complete at meaningfully higher rates than those who reach us months later. Timing, not motivation, is the differentiator — yet no systematic bridge exists today between Franklin County facilities and workforce programming. Referrals are informal, waitlists ignore release dates, and young people fall through the gap between the justice and workforce systems in exactly the weeks that determine their trajectory.
+Brightpath's own intake data sharpens the picture: participants who enroll in workforce programming within 30 days of release complete at meaningfully higher rates than those who reach us months later. Timing, not motivation, is the differentiator ; yet no systematic bridge exists today between Franklin County facilities and workforce programming. Referrals are informal, waitlists ignore release dates, and young people fall through the gap between the justice and workforce systems in exactly the weeks that determine their trajectory.
 
-The consequences track what BJA's notice targets: without credentials, without work history, and without an adult in their corner, reentering young adults cycle into unemployment and back into the system. Employment is among the strongest predictors of successful reentry, and employment at a family-sustaining wage — the $18/hour floor Brightpath builds placements around — is what makes desistance durable.
+The consequences track what BJA's notice targets: without credentials, without work history, and without an adult in their corner, reentering young adults cycle into unemployment and back into the system. Employment is among the strongest predictors of successful reentry, and employment at a family-sustaining wage ; the $18/hour floor Brightpath builds placements around ; is what makes desistance durable.
 
-This opportunity's stated goal — improving vocational programs available to youth in confinement and expanding workforce development that produces job readiness, employment attainment, and retention — describes the precise gap in Franklin County's system. Second Shift Expanded closes it at the source: enrollment before release, paid training within 30 days, and a credential, a job, and a mentor on the other side.`,
+This opportunity's stated goal ; improving vocational programs available to youth in confinement and expanding workforce development that produces job readiness, employment attainment, and retention ; describes the precise gap in Franklin County's system. Second Shift Expanded closes it at the source: enrollment before release, paid training within 30 days, and a credential, a job, and a mentor on the other side.`,
 };
 
 export function buildDemoProposal(): Proposal {

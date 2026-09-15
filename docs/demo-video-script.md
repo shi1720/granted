@@ -1,147 +1,35 @@
-# Demo Video Script — Granted (≤ 5:00)
+# Granted demo narration
 
-**Format:** screen recording with voiceover. Read the VOICE lines verbatim — they're paced
-for ~4:40 at a natural speaking speed, leaving buffer.
-**Setup before recording:** `ANTHROPIC_API_KEY` set (live mode), browser at
-`localhost:3000`, localStorage cleared (fresh state), window ~1440px wide.
-If you must record without a key, the demo-mode replay follows the identical flow — just
-skip the "Extract profile with Claude" beat (use "Load the demo organization" instead) and
-don't cite the cost chip, which only appears on live runs.
+Real hosted app recordings with AI voice narration. Waiting time is shortened.
 
-> **Recording tip:** record the draft pipeline segment in real time and speed it up 2–4× in
-> the edit, keeping the section text readable. Keep your cursor calm; move it only when
-> you're about to click.
+## More time for the mission
 
----
+A small nonprofit can do extraordinary work and still struggle to fund it. Finding a grant is only the beginning. The team must decide whether it can apply, whether the effort is worthwhile, and how to explain its impact. Granted brings that work into one clear workspace.
 
-### [0:00–0:35] The problem — over the landing page, scroll slowly
+## Start with the facts
 
-**SCREEN:** Landing page hero. Pause on the live counter band.
+We start with Brightpath, a fictional sample nonprofit that helps young people build careers. You can load this example, enter your own profile, or ask AI to extract one from your organization summary. Programs, budget, and outcomes stay editable. These facts become the foundation for every recommendation and draft.
 
-**VOICE:**
-"There are almost two million nonprofits in the United States, and most of them are tiny —
-a food pantry, a youth program, a shelter. Right now, on Grants.gov, there are — you can
-see the live number — hundreds of open federal funding opportunities meant for exactly
-these organizations. And most of that money will go to whoever could afford a grant
-writer. Professional grant writers charge up to a hundred and fifty dollars an hour. A
-single federal application takes forty-plus hours. So the smallest organizations — the
-ones doing the hardest work — are locked out of money that was set aside for them.
+## Find real opportunities
 
-This is Granted: the AI grants team they could never hire."
+Granted searches live federal opportunities from Grants dot gov. Here we can explore relevant funding, filter by category, and open the original source. The featured example supports reentry education and employment. We save it to the pipeline, then ask the Analyst whether this opportunity deserves our time.
 
----
+## A decision before a draft
 
-### [0:35–1:05] The insight + profile — onboarding page
+The fit brief explains eligibility, mission alignment, capacity risks, and estimated effort. Its planning estimate shows the assumptions behind the number. These are decision aids, not predictions. Notice that a strong fit still comes with a tight deadline and a capacity question. The team can see the tradeoffs before committing.
 
-**SCREEN:** Click **Open the app**. On Organization page, click **"Fill with sample
-text"**, then **"Extract profile with Claude"**. The structured profile appears; scroll it
-briefly. Click **Save & find grants**.
+## An honest reason to move on
 
-**VOICE:**
-"Here's the insight the industry misses: nonprofits don't lose grants because they write
-badly. They lose because they apply to the wrong grants — and run out of time.
+Now consider another reentry grant. The title sounds promising, but the applicant rules exclude this nonprofit. Granted gives a clear skip verdict and disables drafting. A code-level eligibility check keeps a convincing AI answer from overriding that restriction. Helping a team avoid the wrong application is part of the product's value.
 
-So Granted starts by understanding the organization. I paste anything — a mission
-statement, website copy — and Claude extracts a structured profile: real programs, real
-outcomes, real budget. Extraction only. It never invents our numbers. This profile is what
-every agent downstream grounds itself in."
+## Watch the proposal take shape
 
----
+For the suitable opportunity, four specialized stages build the narrative. The Strategist plans, the Writer drafts, the Reviewer critiques, and the Reviser addresses selected issues. Text streams into the workspace. The reviewer receives the original facts, and a final numeric check flags unsupported figures for human review.
 
-### [1:05–2:05] Triage — the honest analyst
+## Turn a draft into usable work
 
-**SCREEN:** Discover page loads with live results and the "Live" badge. Point at the badge.
-Click **Analyze fit** on the *featured* Second Chance Act grant; when the brief opens,
-hover the eligibility pill → strengths → expected value. Then use the "60-second tour" strip →
-**"See an honest 'skip' verdict"** (Smart Reentry), click **Run the Analyst**, and let the
-red "Skip / Not eligible" verdict land on screen.
+The result is a working document. Missing evidence stays visible. We can inspect the review notes, edit individual sections, and download the proposal as Markdown. Edits save in this browser. The review score describes the AI draft, so the team still needs to check the final application.
 
-**VOICE:**
-"Discovery is live — this is the real Grants.gov API, these deadlines are real. But search
-was never the hard part. The hard part is knowing where your forty hours can actually win.
+## Keep the next step clear
 
-For each grant, Granted's Analyst reads the funder's eligibility rules, priorities, and
-award economics against our profile, and produces a go-slash-no-go brief. Fit score.
-Eligibility as a hard gate. Estimated effort. And the expected-value math, shown — award
-size, times conservative win odds, minus what it costs to apply.
-
-And here's the part I care about most. This second grant — Smart Reentry — looks like a
-perfect mission fit for us. Granted says: skip it. The eligible-applicant list is
-governments only — nonprofits can't apply. That one honest 'no' just saved this
-organization a month of wasted capacity. An AI tool that only ever says yes is a demo.
-One that says no is a product you can trust."
-
----
-
-### [2:05–3:50] The drafting pipeline — the wow
-
-**SCREEN:** Open the featured grant's workspace. Quick glance at the header (deadline
-countdown, award range, eligibility pills). Click **Start drafting with Claude**. Show the
-agent timeline lighting up: Strategist card, then the "Strategist's read on this funder"
-panel — pause on it. Sections stream in (sped up in edit). Reviewer posts the score and
-notes. Reviser rewrites; click **"Revised — view original"** to flash the before/after.
-End on the two score dials and the cost chip (“This draft cost ≈ $0.__ of compute”). Use YOUR run's real numbers when narrating.
-
-**VOICE:**
-"Now the part that used to cost five thousand dollars. This is a real Bureau of Justice
-Assistance opportunity — up to a million dollars, closing in days.
-
-Watch the team work. First, the Strategist reads what this funder is actually buying —
-look at its read: credentialed training, measurable placement, reduced recidivism — and
-plans the narrative around those priorities.
-
-Then the Writer drafts every section, live — grounded in our real outcomes. And where a
-reviewer will want a number we haven't provided, it doesn't make one up. It leaves a
-visible ADD placeholder. In federal grant writing, an invented statistic isn't a typo —
-it's disqualifying. Honesty here is a feature.
-
-Then — and this is what makes it a team, not a template — the Reviewer scores the draft
-the way the funder's own panel would. [say your run's first score], with specific,
-critical notes. The Reviser rewrites exactly what got flagged... and the panel rescores:
-[say your run's second score]. You can see the before and after of every revised section.
-
-Draft, critique, revision, rescore — in about three minutes. And the cost isn't a claim:
-the app meters its own tokens — you can see it on screen, about forty cents of compute."
-
----
-
-### [3:50–4:20] Pipeline + export
-
-**SCREEN:** Click **Download .md** (show the exported file for a beat). Navigate to
-**Pipeline**: the board with deadline sorting and the combined expected-value stat.
-
-**VOICE:**
-"The draft exports ready for staff to finish — every placeholder is a to-do, not a trap.
-And the pipeline board keeps the whole grants operation honest: what's due first, what's
-drafted, and the combined expected value of everything we're chasing."
-
----
-
-### [4:20–4:55] Close
-
-**SCREEN:** Back to the landing page; end on the tagline / final CTA.
-
-**VOICE:**
-"Under the hood: live Grants.gov data, five Claude agents with structured outputs,
-streaming end to end, tested down to the failure cases — and it degrades gracefully even
-with no API key at all.
-
-A fit brief costs pennies. A reviewed draft costs cents. A grant writer costs thousands —
-if you can find one. That's not a demo economics story; that's a forty-nine-dollar-a-month
-product with software margins, for one point eight million organizations.
-
-The grant your community needs is open right now. Granted makes sure you don't miss it.
-Thanks for watching."
-
----
-
-## Shot checklist
-
-- [ ] Fresh localStorage before recording (`localStorage.clear()` in devtools)
-- [ ] Live counter visible on landing (0:10)
-- [ ] "Claude live" badge in nav visible when the app opens (1:05)
-- [ ] The Smart Reentry "skip" verdict fully on screen for ≥3 s (1:50)
-- [ ] Strategist's funder-read panel on screen for ≥4 s (2:25)
-- [ ] An `[ADD: …]` placeholder visibly highlighted during writing (3:00)
-- [ ] Score dials + the measured cost chip on screen at (3:40)
-- [ ] Speed up only the streaming; keep clicks and verdicts real-time
+The pipeline keeps deadlines, stages, and next steps together. Granted runs on Firebase Hosting and Google Cloud Run, with the API key held on the server. The next step is testing with nonprofit teams and adding more funding sources. Try it at granted A I dot web dot app.

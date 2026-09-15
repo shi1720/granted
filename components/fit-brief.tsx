@@ -17,12 +17,12 @@ export function FitBrief({ report }: { report: FitReport }) {
             <span
               className="pill border border-line bg-paper-deep text-ink-faint"
               title={
-                report.engine === "claude"
-                  ? "Analyzed live by the Claude Analyst agent"
+                report.engine !== "heuristic"
+                  ? "Analyzed live by the AI Analyst"
                   : "Scored by the transparent heuristic engine (no API key configured)"
               }
             >
-              {report.engine === "claude" ? "Claude Analyst" : "Heuristic engine"}
+              {report.engine !== "heuristic" ? "AI Analyst" : "Heuristic engine"}
             </span>
           </div>
           <p className="mt-2.5 text-[15px] font-medium leading-relaxed text-pine-950">
@@ -76,7 +76,7 @@ export function FitBrief({ report }: { report: FitReport }) {
           sub={report.effort.reasoning}
         />
         <Stat
-          label="Expected value"
+          label="Planning estimate"
           value={
             report.economics.expectedValueUsd !== null
               ? `${report.economics.expectedValueUsd >= 0 ? "+" : "−"}${formatMoneyFull(Math.abs(report.economics.expectedValueUsd))}`
@@ -93,10 +93,11 @@ export function FitBrief({ report }: { report: FitReport }) {
         />
       </div>
 
+      <p className="text-xs text-ink-soft">Fit scores and assumed win odds are decision aids, not funding predictions. Eligibility still requires checking the full notice.</p>
       {report.winStrategy.length > 0 && (
         <div className="rounded-xl border border-pine-100 bg-pine-50/70 p-4">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-pine-700">
-            If you apply — how to win
+            If you apply: strengthen your case
           </h4>
           <ul className="mt-2 space-y-1.5 text-sm text-pine-950">
             {report.winStrategy.map((w, i) => (

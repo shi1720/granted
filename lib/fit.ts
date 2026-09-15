@@ -2,8 +2,8 @@
  * Fit economics helpers + the heuristic fit engine.
  *
  * The heuristic engine powers "Analyze fit" when no ANTHROPIC_API_KEY is
- * configured. It is deliberately transparent, deterministic scoring — not a
- * mock of the AI — and every report it produces is labeled `engine: "heuristic"`.
+ * configured. It is deliberately transparent, deterministic scoring ; not a
+ * mock of the AI ; and every report it produces is labeled `engine: "heuristic"`.
  * With a key configured, the Claude Analyst agent replaces it entirely.
  */
 
@@ -12,14 +12,14 @@ import type { FitReport, GrantDetail, OrgProfile, OrgType } from "./types";
 
 /**
  * Which Grants.gov applicant-type codes each org type can apply under.
- * Deliberately excludes "25" (Others) — funders define "Others" themselves in
+ * Deliberately excludes "25" (Others) ; funders define "Others" themselves in
  * the eligibility text, and assuming it covers you is exactly the mistake
  * this product exists to prevent. "25" is handled by reading that text.
  */
 export const ORG_TYPE_TO_ELIGIBILITY: Record<OrgType, string[]> = {
   nonprofit_501c3: ["12", "99"],
   nonprofit_other: ["13", "99"],
-  local_government: ["00", "01", "02", "04", "99"],
+  local_government: [ "01", "02", "04", "99"],
   school_district: ["05", "99"],
   higher_ed: ["06", "20", "99"],
   tribal: ["07", "11", "99"],
@@ -90,7 +90,7 @@ export function eligibilityVerdict(
       reasoning: "Your organization type matches the funder's listed applicant types.",
     };
   }
-  // The only remaining hope is the "Others" (25) bucket — but funders define
+  // The only remaining hope is the "Others" (25) bucket ; but funders define
   // "Others" themselves, so we defer to their eligibility text instead of
   // assuming it covers you.
   if (grant.eligibilityCodes.includes("25")) {
@@ -99,10 +99,10 @@ export function eligibilityVerdict(
       return {
         verdict: "unclear",
         reasoning:
-          "Your organization type isn't explicitly listed, but the funder's \"Others\" category text mentions organizations like yours — verify against the full notice before investing time.",
+          "Your organization type isn't explicitly listed, but the funder's \"Others\" category text mentions organizations like yours ; verify against the full notice before investing time.",
       };
     }
-    // A short pointer like "see the full announcement" defines nothing —
+    // A short pointer like "see the full announcement" defines nothing ;
     // treat it as unknown rather than pretending certainty either way.
     const uninformative = desc.length < 120 || /see .*(announcement|notice|section)/i.test(desc);
     if (desc && !uninformative) {
@@ -183,8 +183,10 @@ export function heuristicFitReport(grant: GrantDetail, org: OrgProfile): FitRepo
   }
   score = Math.max(0, Math.min(100, score));
 
+  const expired = days !== null && days < 0;
+  if (expired) score = Math.min(score, 15);
   const recommendation: FitReport["recommendation"] =
-    eligibility.verdict === "ineligible" || score < 30
+    expired || eligibility.verdict === "ineligible" || score < 30
       ? "skip"
       : score < 55
         ? "borderline"
@@ -194,7 +196,7 @@ export function heuristicFitReport(grant: GrantDetail, org: OrgProfile): FitRepo
 
   // Expected value is meaningless for an org that can't apply.
   const ineligible = eligibility.verdict === "ineligible";
-  const ev = ineligible ? null : expectedValue(grant.awardFloor, grant.awardCeiling);
+  const ev = ineligible || expired ? null : expectedValue(grant.awardFloor, grant.awardCeiling);
   const award = realisticAward(grant.awardFloor, grant.awardCeiling);
 
   const strengths: string[] = [];
@@ -204,19 +206,20 @@ export function heuristicFitReport(grant: GrantDetail, org: OrgProfile): FitRepo
   else gaps.push("Little overlap between your stated focus areas and the funder's synopsis language.");
   if (categoryOverlap > 0) strengths.push("The opportunity sits in a funding category you selected.");
   if (capacity === 1) strengths.push("Award size is well matched to your organizational budget.");
-  if (capacity <= 0.45) gaps.push("Award size is large relative to your annual budget — funders will question capacity.");
-  if (!deadlineOk && days !== null) gaps.push(`Only ${days} day${days === 1 ? "" : "s"} to the deadline — very tight for a federal application.`);
+  if (capacity <= 0.45) gaps.push("Award size is large relative to your annual budget ; funders will question capacity.");
+  if (!deadlineOk && days !== null) gaps.push(`Only ${days} day${days === 1 ? "" : "s"} to the deadline ; very tight for a federal application.`);
   if (grant.costSharing) gaps.push("Cost sharing / matching funds are required.");
 
   const verdictParts: string[] = [];
+  if (expired) verdictParts.push("The published deadline has passed. Do not prepare a new application unless the funder confirms an extension.");
   if (eligibility.verdict === "ineligible") {
-    verdictParts.push("Skip this one — your organization type isn't in the funder's eligible applicant list.");
+    verdictParts.push("Skip this one ; your organization type isn't in the funder's eligible applicant list.");
   } else {
     verdictParts.push(
       recommendation === "skip"
         ? "The mission overlap looks too thin to justify a federal application here."
         : recommendation === "borderline"
-          ? "Possible, but not obvious — worth a closer read of the full notice before committing hours."
+          ? "Possible, but not obvious ; worth a closer read of the full notice before committing hours."
           : "The alignment and award size look workable for an organization of your scale.",
     );
     if (award) verdictParts.push(`A realistic award is around $${award.toLocaleString()}.`);
@@ -239,7 +242,7 @@ export function heuristicFitReport(grant: GrantDetail, org: OrgProfile): FitRepo
       awardCeiling: grant.awardCeiling,
       expectedValueUsd: ev,
       reasoning: ineligible
-        ? "Not applicable — the organization isn't eligible to apply."
+        ? "Not applicable ; the organization isn't eligible to apply."
         : award
           ? `Assumes a ~${Math.round(BASELINE_WIN_RATE * 100)}% win rate for a small applicant and ~$${APPLICATION_COST_USD.toLocaleString()} of staff/consultant time to apply.`
           : "The funder did not publish award amounts, so expected value can't be estimated.",
@@ -249,7 +252,7 @@ export function heuristicFitReport(grant: GrantDetail, org: OrgProfile): FitRepo
       recommendation === "skip"
         ? []
         : [
-            "Lead with your most quantified outcome — federal reviewers score evidence, not adjectives.",
+            "Lead with your most quantified outcome ; federal reviewers score evidence, not adjectives.",
             "Mirror the funder's own vocabulary from the synopsis in your need statement.",
             "Name specific local partners to answer the capacity question before it's asked.",
           ],

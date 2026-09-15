@@ -1,0 +1,1 @@
+{"hosting":{"site":"grantedai","public":"hosting","ignore":["firebase.json","**/.*","**/node_modules/**"],"rewrites":[{"source":"**","run":{"serviceId":"granted","region":"us-central1"}}]}}

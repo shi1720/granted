@@ -126,14 +126,14 @@ export function AiStatusBadge({
 }) {
   if (!loaded) return null;
   return aiEnabled ? (
-    <span className="pill bg-pine-50 text-pine-700 border border-pine-100" title={`Live Claude analysis: ${model}`}>
+    <span className="pill bg-pine-50 text-pine-700 border border-pine-100" title={`Configured AI model: ${model}`}>
       <span className="h-1.5 w-1.5 rounded-full bg-pine-600 pulse-dot" />
-      Claude live
+      AI ready
     </span>
   ) : (
     <span
       className="pill bg-amber-soft text-amber-strong"
-      title="No ANTHROPIC_API_KEY configured — fit analysis uses the transparent heuristic engine and drafting replays the featured demo."
+      title="Live AI is not configured ; fit analysis uses the transparent heuristic engine and drafting replays the featured demo."
     >
       <span className="h-1.5 w-1.5 rounded-full bg-amber-strong" />
       Demo mode
