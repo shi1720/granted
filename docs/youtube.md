@@ -18,3 +18,5 @@ Technology: Next.js, React, TypeScript, Tailwind CSS, OpenAI Responses API, Zod,
 The screen captures show the working application. Waiting periods are shortened for clarity. Narration uses an AI-generated voice. Brightpath's organizational data is fictional. AI recommendations and scores are planning aids, not official funder evaluations or funding guarantees. Review all facts and the full funding notice before submitting an application.
 
 #AI #Nonprofits #Grants #Hackathon
+
+Published video: https://youtu.be/vnCDy0VRRvM

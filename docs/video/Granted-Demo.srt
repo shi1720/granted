@@ -1,0 +1,127 @@
+1
+00:00:00,350 --> 00:00:05,839
+A small nonprofit can do extraordinary work and still struggle to fund it. Finding a
+
+2
+00:00:05,839 --> 00:00:11,329
+grant is only the beginning. The team must decide whether it can apply, whether the
+
+3
+00:00:11,329 --> 00:00:16,818
+effort is worthwhile, and how to explain its impact. Granted brings that work into one
+
+4
+00:00:16,818 --> 00:00:17,550
+clear workspace.
+
+5
+00:00:18,950 --> 00:00:24,031
+We start with Brightpath, a fictional sample nonprofit that helps young people build
+
+6
+00:00:24,031 --> 00:00:30,284
+careers. You can load this example, enter your own profile, or ask AI to extract one
+
+7
+00:00:30,284 --> 00:00:34,583
+from your organization summary. Programs, budget, and outcomes stay editable. These
+
+8
+00:00:34,583 --> 00:00:38,100
+facts become the foundation for every recommendation and draft.
+
+9
+00:00:39,500 --> 00:00:45,018
+Granted searches live federal opportunities from Grants dot gov. Here we can explore
+
+10
+00:00:45,018 --> 00:00:50,536
+relevant funding, filter by category, and open the original source. The featured example
+
+11
+00:00:50,536 --> 00:00:56,479
+supports reentry education and employment. We save it to the pipeline, then ask the
+
+12
+00:00:56,479 --> 00:00:59,450
+Analyst whether this opportunity deserves our time.
+
+13
+00:01:00,850 --> 00:01:04,975
+The fit brief explains eligibility, mission alignment, capacity risks, and estimated
+
+14
+00:01:04,975 --> 00:01:09,475
+effort. Its planning estimate shows the assumptions behind the number. These are
+
+15
+00:01:09,475 --> 00:01:14,725
+decision aids, not predictions. Notice that a strong fit still comes with a tight
+
+16
+00:01:14,725 --> 00:01:19,600
+deadline and a capacity question. The team can see the tradeoffs before committing.
+
+17
+00:01:21,000 --> 00:01:26,570
+Now consider another reentry grant. The title sounds promising, but the applicant rules
+
+18
+00:01:26,570 --> 00:01:32,139
+exclude this nonprofit. Granted gives a clear skip verdict and disables drafting. A
+
+19
+00:01:32,139 --> 00:01:36,852
+code-level eligibility check keeps a convincing AI answer from overriding that
+
+20
+00:01:36,852 --> 00:01:42,850
+restriction. Helping a team avoid the wrong application is part of the product's value.
+
+21
+00:01:44,250 --> 00:01:49,598
+For the suitable opportunity, four specialized stages build the narrative. The
+
+22
+00:01:49,598 --> 00:01:55,432
+Strategist plans, the Writer drafts, the Reviewer critiques, and the Reviser addresses
+
+23
+00:01:55,432 --> 00:02:01,266
+selected issues. Text streams into the workspace. The reviewer receives the original
+
+24
+00:02:01,266 --> 00:02:07,100
+facts, and a final numeric check flags unsupported figures for human review.
+
+25
+00:02:08,500 --> 00:02:13,653
+The result is a working document. Missing evidence stays visible. We can inspect the
+
+26
+00:02:13,653 --> 00:02:18,070
+review notes, edit individual sections, and download the proposal as Markdown. Edits
+
+27
+00:02:18,070 --> 00:02:23,960
+save in this browser. The review score describes the AI draft, so the team still needs
+
+28
+00:02:23,960 --> 00:02:25,800
+to check the final application.
+
+29
+00:02:27,200 --> 00:02:32,214
+The pipeline keeps deadlines, stages, and next steps together. Granted runs on Firebase
+
+30
+00:02:32,214 --> 00:02:38,771
+Hosting and Google Cloud Run, with the API key held on the server. The next step is
+
+31
+00:02:38,771 --> 00:02:44,943
+testing with nonprofit teams and adding more funding sources. Try it at granted A I dot
+
+32
+00:02:44,943 --> 00:02:46,100
+web dot app.

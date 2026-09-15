@@ -2,7 +2,7 @@
 
 **The AI grants team for small nonprofits.**
 
-[Try the app](https://grantedai.web.app) · [Judge testing guide](docs/JUDGES.md) · [Project story](docs/devpost.md) · [Pitch deck](docs/pitch-deck.pdf)
+[Try the app](https://grantedai.web.app) · [Watch the demo](https://youtu.be/vnCDy0VRRvM) · [Judge testing guide](docs/JUDGES.md) · [Project story](docs/devpost.md) · [Pitch deck](docs/pitch-deck.pdf)
 
 Granted helps a small nonprofit decide which federal opportunities deserve its time, then turn its programs and outcomes into a reviewed, editable proposal.
 

@@ -39,3 +39,7 @@ Tested on 15 September 2026. Public deployment: https://grantedai.web.app. Cloud
 ## Limits
 
 This is a functional hackathon prototype, not evidence of real-world funding success. Testing does not establish universal browser compatibility, load capacity, calibrated fit scores, or factual perfection. The data source and model can change. Numeric grounding is conservative and cannot verify every claim. A person must check the full notice and final proposal. No external nonprofit pilot has been completed.
+
+Final hosted verification: Firebase Hosting was released after the Cloud Run update to refresh cached pages. Landing and pipeline have no horizontal overflow at 360 px. Public YouTube playback reached 26 seconds with the player ready and no media error. English subtitles were published.
+
+GitHub Actions CI passed on the published `main` branch: https://github.com/shi1720/granted/actions/runs/34952623794.
