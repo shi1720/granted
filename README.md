@@ -58,8 +58,8 @@ costs a small org a month of capacity. So Granted starts where the money is actu
 ```mermaid
 flowchart LR
     subgraph Browser
-        UI[Next.js UI\nprofile · discover · workspace · pipeline]
-        LS[(localStorage\nprofile, briefs, drafts)]
+        UI[Next.js UI<br/>profile · discover · workspace · pipeline]
+        LS[(localStorage<br/>profile, briefs, drafts)]
     end
     subgraph "Next.js API routes (stateless)"
         S[/api/grants/search/]
@@ -68,14 +68,14 @@ flowchart LR
         P[/api/ai/draft — SSE/]
     end
     subgraph "Live data"
-        GG[(Grants.gov public API\nno key required)]
+        GG[(Grants.gov public API<br/>no key required)]
     end
     subgraph "Claude (Opus 5)"
-        AN[Analyst\nstructured go/no-go brief]
-        ST[Strategist\nplans around funder priorities]
-        WR[Writer\nstreams grounded sections]
-        RV[Reviewer\nscores like the panel]
-        RS[Reviser\nrewrites flagged sections]
+        AN[Analyst<br/>structured go/no-go brief]
+        ST[Strategist<br/>plans around funder priorities]
+        WR[Writer<br/>streams grounded sections]
+        RV[Reviewer<br/>scores like the panel]
+        RS[Reviser<br/>rewrites flagged sections]
     end
     UI --> S --> GG
     UI --> D --> GG

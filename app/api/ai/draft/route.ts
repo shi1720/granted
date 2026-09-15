@@ -70,21 +70,40 @@ export async function POST(req: NextRequest) {
   }
 
   const encoder = new TextEncoder();
+  let closed = false;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const send = (e: DraftEvent) =>
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(e)}\n\n`));
+      const send = (e: DraftEvent) => {
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(e)}\n\n`));
+        } catch {
+          // Client went away mid-stream; stop producing.
+          closed = true;
+        }
+      };
       try {
-        for await (const event of events) send(event);
+        for await (const event of events) {
+          if (closed) break;
+          send(event);
+        }
       } catch (err) {
         console.error("Draft pipeline error:", err);
         send({ type: "error", message: friendlyAiError(err) });
       } finally {
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            // Already closed by cancel(); nothing to do.
+          }
+        }
       }
     },
     cancel() {
-      // Client disconnected — the generator is GC'd; nothing to clean up.
+      // Client disconnected — stop the producer loop above.
+      closed = true;
     },
   });
 
