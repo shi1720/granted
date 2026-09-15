@@ -8,7 +8,7 @@ import type {
   ProposalSection,
   ReviewNote,
 } from "../types";
-import { MODEL, anthropic } from "./client";
+import { MODEL, anthropic, estimateCostUsd } from "./client";
 import {
   REVISER_SYSTEM,
   REVIEWER_SYSTEM,
@@ -79,6 +79,29 @@ interface DraftInput {
   grant: GrantDetail;
   org: OrgProfile;
   fit?: FitReport | null;
+  /** Aborts in-flight model calls when the client disconnects. */
+  signal?: AbortSignal;
+}
+
+interface UsageTotals {
+  inputTokens: number;
+  outputTokens: number;
+}
+
+function addUsage(
+  totals: UsageTotals,
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+    cache_creation_input_tokens?: number | null;
+    cache_read_input_tokens?: number | null;
+  },
+): void {
+  totals.inputTokens +=
+    usage.input_tokens +
+    (usage.cache_creation_input_tokens ?? 0) +
+    (usage.cache_read_input_tokens ?? 0);
+  totals.outputTokens += usage.output_tokens;
 }
 
 /**
@@ -91,8 +114,14 @@ interface DraftInput {
  *
  * Five Claude calls total (≈$0.25–0.40 at Opus 5 rates for a full proposal).
  */
-export async function* draftProposal({ grant, org, fit }: DraftInput): AsyncGenerator<DraftEvent> {
+export async function* draftProposal({
+  grant,
+  org,
+  fit,
+  signal,
+}: DraftInput): AsyncGenerator<DraftEvent> {
   const client = anthropic();
+  const totals: UsageTotals = { inputTokens: 0, outputTokens: 0 };
   const shared = `${orgContext(org)}\n\n${grantContext(grant)}${
     fit
       ? `\n\n## Analyst's fit brief\nVerdict: ${fit.verdict}\nStrengths: ${fit.alignment.strengths.join("; ")}\nGaps to preempt: ${fit.alignment.gaps.join("; ")}\nWin strategy: ${fit.winStrategy.join("; ")}`
@@ -106,18 +135,22 @@ export async function* draftProposal({ grant, org, fit }: DraftInput): AsyncGene
     message: "Reading the funder's synopsis and planning the narrative…",
   };
 
-  const planResp = await client.messages.parse({
-    model: MODEL,
-    max_tokens: 8000,
-    system: STRATEGIST_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: `${shared}\n\nDesign the proposal plan for this organization and opportunity.`,
-      },
-    ],
-    output_config: { format: zodOutputFormat(PlanSchema) },
-  });
+  const planResp = await client.messages.parse(
+    {
+      model: MODEL,
+      max_tokens: 8000,
+      system: STRATEGIST_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: `${shared}\n\nDesign the proposal plan for this organization and opportunity.`,
+        },
+      ],
+      output_config: { format: zodOutputFormat(PlanSchema) },
+    },
+    { signal },
+  );
+  addUsage(totals, planResp.usage);
   const plan = planResp.parsed_output;
   if (!plan) throw new Error("The Strategist couldn't produce a plan. Try again.");
 
@@ -152,6 +185,8 @@ export async function* draftProposal({ grant, org, fit }: DraftInput): AsyncGene
     maxTokens: 16000,
     sections,
     plan,
+    signal,
+    onUsage: (u) => addUsage(totals, u),
     eventNames: { start: "section_start", delta: "section_delta", done: "section_done" },
   });
 
@@ -168,18 +203,22 @@ export async function* draftProposal({ grant, org, fit }: DraftInput): AsyncGene
     .map((s) => `@@${s.id}@@ ${s.title}\n${s.content.trim()}`)
     .join("\n\n");
 
-  const reviewResp = await client.messages.parse({
-    model: MODEL,
-    max_tokens: 8000,
-    system: REVIEWER_SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: `${grantContext(grant)}\n\n## Draft proposal (sections keyed by id)\n${draftText}\n\nScore this draft and list your notes.`,
-      },
-    ],
-    output_config: { format: zodOutputFormat(ReviewSchema) },
-  });
+  const reviewResp = await client.messages.parse(
+    {
+      model: MODEL,
+      max_tokens: 8000,
+      system: REVIEWER_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: `${grantContext(grant)}\n\n## Draft proposal (sections keyed by id)\n${draftText}\n\nScore this draft and list your notes.`,
+        },
+      ],
+      output_config: { format: zodOutputFormat(ReviewSchema) },
+    },
+    { signal },
+  );
+  addUsage(totals, reviewResp.usage);
   const review = reviewResp.parsed_output;
   if (!review) throw new Error("The Reviewer couldn't score the draft. Try again.");
 
@@ -225,26 +264,32 @@ export async function* draftProposal({ grant, org, fit }: DraftInput): AsyncGene
       maxTokens: 8000,
       sections,
       resetOnMarker: true,
+      signal,
+      onUsage: (u) => addUsage(totals, u),
       eventNames: { start: "revision_start", delta: "revision_delta", done: "revision_done" },
     });
 
     // Rescore just the revised sections against the original notes.
-    const rescoreResp = await client.messages.parse({
-      model: MODEL,
-      max_tokens: 2000,
-      system: REVIEWER_SYSTEM,
-      messages: [
-        {
-          role: "user",
-          content: `Your panel previously scored this draft ${Math.round(review.score)}/100 with these notes:\n${notes
-            .map((n) => `- [${n.severity}] (${n.sectionId}) ${n.issue}`)
-            .join("\n")}\n\nThe flagged sections have been revised:\n${flagged
-            .map((id) => `@@${id}@@\n${sections.get(id)!.content.trim()}`)
-            .join("\n\n")}\n\nGive the updated overall score.`,
-        },
-      ],
-      output_config: { format: zodOutputFormat(RescoreSchema) },
-    });
+    const rescoreResp = await client.messages.parse(
+      {
+        model: MODEL,
+        max_tokens: 2000,
+        system: REVIEWER_SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content: `Your panel previously scored this draft ${Math.round(review.score)}/100 with these notes:\n${notes
+              .map((n) => `- [${n.severity}] (${n.sectionId}) ${n.issue}`)
+              .join("\n")}\n\nThe flagged sections have been revised:\n${flagged
+              .map((id) => `@@${id}@@\n${sections.get(id)!.content.trim()}`)
+              .join("\n\n")}\n\nGive the updated overall score.`,
+          },
+        ],
+        output_config: { format: zodOutputFormat(RescoreSchema) },
+      },
+      { signal },
+    );
+    addUsage(totals, rescoreResp.usage);
     const rescore = rescoreResp.parsed_output;
     if (rescore) scoreAfter = Math.round(rescore.score);
 
@@ -266,6 +311,12 @@ export async function* draftProposal({ grant, org, fit }: DraftInput): AsyncGene
     scoreAfter,
     generatedAt: new Date().toISOString(),
     engine: "claude",
+    usage: {
+      inputTokens: totals.inputTokens,
+      outputTokens: totals.outputTokens,
+      costUsd: estimateCostUsd(totals.inputTokens, totals.outputTokens),
+      model: MODEL,
+    },
   };
 
   yield { type: "done", proposal };
@@ -277,6 +328,13 @@ interface StreamSectionsInput {
   maxTokens: number;
   sections: Map<string, ProposalSection>;
   plan?: Plan;
+  signal?: AbortSignal;
+  onUsage?: (usage: {
+    input_tokens: number;
+    output_tokens: number;
+    cache_creation_input_tokens?: number | null;
+    cache_read_input_tokens?: number | null;
+  }) => void;
   /** Reviser mode: replace section content instead of appending. */
   resetOnMarker?: boolean;
   eventNames: {
@@ -326,12 +384,15 @@ async function* streamSections(input: StreamSectionsInput): AsyncGenerator<Draft
     },
   );
 
-  const stream = anthropic().messages.stream({
-    model: MODEL,
-    max_tokens: input.maxTokens,
-    system: input.system,
-    messages: [{ role: "user", content: input.prompt }],
-  });
+  const stream = anthropic().messages.stream(
+    {
+      model: MODEL,
+      max_tokens: input.maxTokens,
+      system: input.system,
+      messages: [{ role: "user", content: input.prompt }],
+    },
+    { signal: input.signal },
+  );
 
   for await (const event of stream) {
     if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
@@ -344,6 +405,7 @@ async function* streamSections(input: StreamSectionsInput): AsyncGenerator<Draft
   while (pending.length) yield pending.shift()!;
 
   const final = await stream.finalMessage();
+  input.onUsage?.(final.usage);
   if (final.stop_reason === "max_tokens") {
     throw new Error("The draft was cut off by the token limit. Try again.");
   }

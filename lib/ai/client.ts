@@ -27,6 +27,20 @@ export function anthropic(): Anthropic {
  */
 export const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5";
 
+/** List prices per million tokens (input, output) for cost telemetry. */
+const MODEL_PRICES: Record<string, [number, number]> = {
+  "claude-opus-5": [5, 25],
+  "claude-sonnet-5": [2, 10],
+  "claude-haiku-4-5": [1, 5],
+};
+
+/** Dollar cost of a call mix at list prices, or null for unknown models. */
+export function estimateCostUsd(inputTokens: number, outputTokens: number): number | null {
+  const prices = MODEL_PRICES[MODEL];
+  if (!prices) return null;
+  return (inputTokens * prices[0] + outputTokens * prices[1]) / 1_000_000;
+}
+
 /** Convert SDK errors into messages safe to show end users. */
 export function friendlyAiError(err: unknown): string {
   if (err instanceof Anthropic.AuthenticationError) {

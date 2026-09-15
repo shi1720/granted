@@ -1,7 +1,9 @@
 /**
- * Replays the pre-generated demo drafting run as the same DraftEvent stream
- * the live pipeline emits, with realistic pacing. The UI cannot tell the
+ * Replays the curated demo drafting run as the same DraftEvent stream the
+ * live pipeline emits, with realistic pacing. The UI can't tell the
  * difference — by design, so the demo exercises the real rendering path.
+ * (Live runs additionally carry measured usage; the demo deliberately
+ * doesn't, so the cost chip only ever shows real numbers.)
  */
 
 import {

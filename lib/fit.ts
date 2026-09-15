@@ -10,16 +10,33 @@
 import { daysUntil } from "./grantsgov";
 import type { FitReport, GrantDetail, OrgProfile, OrgType } from "./types";
 
-/** Which Grants.gov applicant-type codes each org type can generally apply under. */
+/**
+ * Which Grants.gov applicant-type codes each org type can apply under.
+ * Deliberately excludes "25" (Others) — funders define "Others" themselves in
+ * the eligibility text, and assuming it covers you is exactly the mistake
+ * this product exists to prevent. "25" is handled by reading that text.
+ */
 export const ORG_TYPE_TO_ELIGIBILITY: Record<OrgType, string[]> = {
-  nonprofit_501c3: ["12", "25", "99"],
-  nonprofit_other: ["13", "25", "99"],
-  local_government: ["00", "01", "02", "04", "25", "99"],
-  school_district: ["05", "25", "99"],
-  higher_ed: ["06", "20", "25", "99"],
-  tribal: ["07", "11", "25", "99"],
-  small_business: ["23", "25", "99"],
-  other: ["25", "99"],
+  nonprofit_501c3: ["12", "99"],
+  nonprofit_other: ["13", "99"],
+  local_government: ["00", "01", "02", "04", "99"],
+  school_district: ["05", "99"],
+  higher_ed: ["06", "20", "99"],
+  tribal: ["07", "11", "99"],
+  small_business: ["23", "99"],
+  other: ["99"],
+};
+
+/** Keywords per org type that, appearing in a funder's eligibility text, suggest the "Others" (25) bucket includes them. */
+const OTHERS_TEXT_HINTS: Record<OrgType, RegExp> = {
+  nonprofit_501c3: /non-?profit|501\s?\(?c\)?|faith-?based|community-?based|non-?governmental|\bngo\b/i,
+  nonprofit_other: /non-?profit|faith-?based|community-?based|non-?governmental|\bngo\b/i,
+  local_government: /local government|municipalit|county|city|township/i,
+  school_district: /school district|local education/i,
+  higher_ed: /higher education|college|universit/i,
+  tribal: /tribal|tribe|native american|indian/i,
+  small_business: /small business|for-?profit/i,
+  other: /./,
 };
 
 /**
@@ -70,12 +87,41 @@ export function eligibilityVerdict(
   if (overlap.length > 0) {
     return {
       verdict: "eligible",
-      reasoning: `Your organization type matches the funder's listed applicant types.`,
+      reasoning: "Your organization type matches the funder's listed applicant types.",
+    };
+  }
+  // The only remaining hope is the "Others" (25) bucket — but funders define
+  // "Others" themselves, so we defer to their eligibility text instead of
+  // assuming it covers you.
+  if (grant.eligibilityCodes.includes("25")) {
+    const desc = grant.eligibilityDesc ?? "";
+    if (desc && OTHERS_TEXT_HINTS[org.orgType].test(desc)) {
+      return {
+        verdict: "unclear",
+        reasoning:
+          "Your organization type isn't explicitly listed, but the funder's \"Others\" category text mentions organizations like yours — verify against the full notice before investing time.",
+      };
+    }
+    // A short pointer like "see the full announcement" defines nothing —
+    // treat it as unknown rather than pretending certainty either way.
+    const uninformative = desc.length < 120 || /see .*(announcement|notice|section)/i.test(desc);
+    if (desc && !uninformative) {
+      return {
+        verdict: "ineligible",
+        reasoning:
+          "Your organization type isn't in the funder's applicant list, and their own definition of \"Others\" doesn't mention organizations like yours. Applying would almost certainly be wasted effort.",
+      };
+    }
+    return {
+      verdict: "unclear",
+      reasoning:
+        "The funder lists an \"Others\" category without defining it here. Confirm eligibility in the full notice before investing time.",
     };
   }
   return {
     verdict: "ineligible",
-    reasoning: `The funder's applicant types do not include organizations like yours. Applying would almost certainly be wasted effort.`,
+    reasoning:
+      "The funder's applicant types do not include organizations like yours. Applying would almost certainly be wasted effort.",
   };
 }
 
@@ -146,7 +192,9 @@ export function heuristicFitReport(grant: GrantDetail, org: OrgProfile): FitRepo
           ? "apply"
           : "strong_apply";
 
-  const ev = expectedValue(grant.awardFloor, grant.awardCeiling);
+  // Expected value is meaningless for an org that can't apply.
+  const ineligible = eligibility.verdict === "ineligible";
+  const ev = ineligible ? null : expectedValue(grant.awardFloor, grant.awardCeiling);
   const award = realisticAward(grant.awardFloor, grant.awardCeiling);
 
   const strengths: string[] = [];
@@ -190,9 +238,11 @@ export function heuristicFitReport(grant: GrantDetail, org: OrgProfile): FitRepo
       awardFloor: grant.awardFloor,
       awardCeiling: grant.awardCeiling,
       expectedValueUsd: ev,
-      reasoning: award
-        ? `Assumes a ~${Math.round(BASELINE_WIN_RATE * 100)}% win rate for a small applicant and ~$${APPLICATION_COST_USD.toLocaleString()} of staff/consultant time to apply.`
-        : "The funder did not publish award amounts, so expected value can't be estimated.",
+      reasoning: ineligible
+        ? "Not applicable — the organization isn't eligible to apply."
+        : award
+          ? `Assumes a ~${Math.round(BASELINE_WIN_RATE * 100)}% win rate for a small applicant and ~$${APPLICATION_COST_USD.toLocaleString()} of staff/consultant time to apply.`
+          : "The funder did not publish award amounts, so expected value can't be estimated.",
     },
     verdict: verdictParts.join(" "),
     winStrategy:

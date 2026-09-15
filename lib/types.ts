@@ -147,6 +147,14 @@ export interface Proposal {
   scoreAfter: number | null;
   generatedAt: string;
   engine: "claude" | "demo";
+  /** Measured token usage across the pipeline's model calls (live runs only). */
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
+    /** Computed from list prices when the model is known, else null. */
+    costUsd: number | null;
+    model: string;
+  };
 }
 
 /** Agents in the drafting pipeline, in execution order. */

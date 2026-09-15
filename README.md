@@ -46,6 +46,10 @@ costs a small org a month of capacity. So Granted starts where the money is actu
 
 ### Built for trust
 
+<div align="center">
+<img src="docs/screenshots/03b-honest-skip.png" alt="The honesty test: a perfect-sounding grant marked Skip / Not eligible" width="800" />
+</div>
+
 - **It says no.** A grant with perfect mission fit whose eligibility list excludes nonprofits
   gets a hard "skip" — try the *Smart Reentry* opportunity in the demo to see it.
 - **It never invents your data.** Where a reviewer will want a figure you haven't provided,
@@ -92,6 +96,9 @@ flowchart LR
   proposal** at Claude Opus 5 rates (vs. $3,000–5,000 for a human-written federal proposal).
 - **Structured outputs everywhere decisions matter.** Fit briefs, plans, and reviews are
   Zod-schema-validated (`messages.parse` + `zodOutputFormat`) — the UI never parses prose.
+- **Costs are measured, not claimed.** Every live draft accumulates token usage across
+  its five calls and shows its real compute cost in the UI when it completes; a client
+  disconnect aborts in-flight model calls so a closed tab never keeps spending.
 - **Graceful degradation at every layer.** No API key → transparent heuristic fit engine
   (real scoring logic, labeled) + a replayed demo of the drafting pipeline. Grants.gov
   down → bundled snapshot. Claude errors → friendly typed-error messages, never a dead end.
@@ -116,8 +123,9 @@ npm run dev                        # http://localhost:3000
 
 **60-second tour:** open the app → *Organization* → **"Load the demo organization"** →
 *Save & find grants* → analyze the **featured opportunity** (a real BJA Second Chance Act
-grant) → open its workspace → **draft the proposal** and watch the agents work. Then analyze
-*Smart Reentry* and watch Granted honestly tell you to skip it.
+grant) → open its workspace → **draft the proposal** and watch the agents work. Then take
+the "60-second tour" strip's second link (*Smart Reentry*) and watch Granted honestly tell
+you to skip a perfect-sounding grant whose eligibility rules exclude nonprofits.
 
 Works with **zero API keys** (demo mode, clearly labeled). Grant search is live real data
 either way — the Grants.gov API is public.
@@ -125,11 +133,12 @@ either way — the Grants.gov API is public.
 ## Testing
 
 ```bash
-npm test                # vitest — 26 unit tests (parsers, eligibility gates, EV math,
+npm test                # vitest — 31 unit tests (parsers, eligibility gates incl. the
+                        # Smart Reentry skip pinned on real snapshot data, EV math,
                         # stream-parser chunk-boundary cases)
 npm run build           # production build + typecheck
 node scripts/smoke.mjs  # Playwright end-to-end: onboarding → discover → analyze →
-                        # draft → pipeline, capturing the README screenshots
+                        # the honesty test → draft → export → pipeline (with screenshots)
 ```
 
 The smoke test earned its keep: it caught a state-loss bug (debounced localStorage writes

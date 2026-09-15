@@ -68,6 +68,58 @@ describe("eligibilityVerdict", () => {
   it("is unclear when the funder published no applicant types", () => {
     expect(eligibilityVerdict(grant({ eligibilityCodes: [] }), org).verdict).toBe("unclear");
   });
+  it('never assumes "Others" (25) covers a nonprofit when the funder defines it otherwise', () => {
+    const r = eligibilityVerdict(
+      grant({
+        eligibilityCodes: ["00", "01", "25"],
+        eligibilityDesc:
+          "Other units of local government: For the purposes of this notice of funding opportunity, other units of local government include towns, boroughs, parishes, villages, or other general purpose political subdivisions of a state.",
+      }),
+      org,
+    );
+    expect(r.verdict).toBe("ineligible");
+  });
+  it('flags "Others" (25) as unclear when the funder\'s text mentions nonprofits', () => {
+    const r = eligibilityVerdict(
+      grant({
+        eligibilityCodes: ["25", "00"],
+        eligibilityDesc:
+          "Nonprofit or for-profit mental health agencies or other non-governmental applicants are eligible to apply if designated by the state authority.",
+      }),
+      org,
+    );
+    expect(r.verdict).toBe("unclear");
+  });
+  it('treats an uninformative "Others" definition as unclear, not ineligible', () => {
+    const r = eligibilityVerdict(
+      grant({
+        eligibilityCodes: ["25"],
+        eligibilityDesc: "See Section 2 of the full announcement for eligibility information.",
+      }),
+      org,
+    );
+    expect(r.verdict).toBe("unclear");
+  });
+});
+
+describe("the honesty test (real snapshot data)", () => {
+  // These pin the demo flow judges are directed through in docs/JUDGES.md.
+  it("BJA Smart Reentry (363588): perfect mission fit, but nonprofits are NOT eligible → skip", async () => {
+    const grants = (await import("../lib/demo-grants.json")).default as unknown as GrantDetail[];
+    const smartReentry = grants.find((g) => g.id === "363588")!;
+    const report = heuristicFitReport(smartReentry, org);
+    expect(report.eligibility.verdict).toBe("ineligible");
+    expect(report.recommendation).toBe("skip");
+    // No expected value on a grant the org can't apply to.
+    expect(report.economics.expectedValueUsd).toBeNull();
+  });
+  it("BJA Second Chance Act (363637): featured demo grant is eligible for a 501(c)(3)", async () => {
+    const grants = (await import("../lib/demo-grants.json")).default as unknown as GrantDetail[];
+    const featured = grants.find((g) => g.id === "363637")!;
+    const report = heuristicFitReport(featured, org);
+    expect(report.eligibility.verdict).toBe("eligible");
+    expect(report.recommendation).not.toBe("skip");
+  });
 });
 
 describe("award economics", () => {

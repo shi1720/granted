@@ -34,6 +34,7 @@ interface StudioState {
   notes: ReviewNote[];
   scoreBefore: number | null;
   scoreAfter: number | null;
+  usage: Proposal["usage"] | null;
   error: string | null;
   needKey: boolean;
 }
@@ -55,6 +56,7 @@ const initialState = (): StudioState => ({
   notes: [],
   scoreBefore: null,
   scoreAfter: null,
+  usage: null,
   error: null,
   needKey: false,
 });
@@ -83,6 +85,7 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
         notes: existing.reviewNotes,
         scoreBefore: existing.scoreBefore,
         scoreAfter: existing.scoreAfter,
+        usage: existing.usage ?? null,
         agents: Object.fromEntries(
           AGENT_ORDER.map((a) => [a, { state: "done" as const, message: "" }]),
         ) as StudioState["agents"],
@@ -158,6 +161,7 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
         case "done":
           next.phase = "done";
           next.scoreAfter = e.proposal.scoreAfter;
+          next.usage = e.proposal.usage ?? null;
           break;
         case "error":
           next.phase = "error";
@@ -276,9 +280,21 @@ export function DraftStudio({ grant, fit }: { grant: GrantDetail; fit: FitReport
       {/* agent timeline */}
       <div className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-xl font-semibold text-pine-950">
-            {s.phase === "done" ? "Drafting complete" : s.phase === "error" ? "Drafting stopped" : "Agents at work"}
-          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-xl font-semibold text-pine-950">
+              {s.phase === "done" ? "Drafting complete" : s.phase === "error" ? "Drafting stopped" : "Agents at work"}
+            </h2>
+            {s.phase === "done" && s.usage && (
+              <span
+                className="pill border border-pine-100 bg-pine-50 text-pine-700"
+                title={`Measured across every model call in this run (${s.usage.model}): ${s.usage.inputTokens.toLocaleString()} input + ${s.usage.outputTokens.toLocaleString()} output tokens, at list prices.`}
+              >
+                {s.usage.costUsd !== null
+                  ? `This draft cost ≈ $${s.usage.costUsd.toFixed(2)} of compute`
+                  : `${(s.usage.inputTokens + s.usage.outputTokens).toLocaleString()} tokens`}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {s.phase !== "running" && (
               <button onClick={start} className="btn-secondary text-xs px-4 py-2">

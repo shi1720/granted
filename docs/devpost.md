@@ -41,7 +41,7 @@ Granted is a working product on **live Grants.gov data** (public API, no key nee
    funder's priorities, the **Writer** drafts every section grounded in your real outcomes
    (leaving visible `[ADD: …]` placeholders instead of inventing data), the **Reviewer**
    scores the draft like the funder's panel, and the **Reviser** rewrites what got flagged
-   — with a before/after score (e.g. 74 → 88) and per-section revision diffs.
+   — with a visible before/after score (74 → 88 in the bundled demo run) and per-section revision diffs.
 4. **Track** — a deadline-sorted pipeline board with combined expected value.
 
 ## How we built it
@@ -60,9 +60,13 @@ journey and captured our README screenshots.
 - **Streaming one draft into seven live sections** without a markdown parser dependency —
   solved with a marker protocol and an incremental parser that survives markers split
   across arbitrary chunk boundaries.
-- **Keeping the AI honest.** Early drafts happily invented statistics. The fix was a hard
-  grounding contract in every prompt plus a visible `[ADD: …]` convention — and making the
-  Reviewer penalize unevidenced claims like a real federal panel does.
+- **Keeping the AI honest — including about eligibility.** Our own adversarial review pass
+  caught the fallback fit engine treating Grants.gov's "Others" applicant category as if it
+  covered nonprofits. It doesn't — funders define "Others" themselves. The fix (read the
+  funder's own eligibility text, and return "unclear" rather than false confidence when it's
+  silent) is now pinned by unit tests against real snapshot data, and the same rule is written
+  into the live Analyst's prompt. In drafting, a hard grounding contract plus the visible
+  `[ADD: …]` convention keeps invented statistics out of proposals.
 - **Making "no key" a real experience, not a wall:** a transparent heuristic fit engine
   (real scoring logic, honestly labeled) and a replayed pipeline demo mean judges can
   explore everything with zero setup.
@@ -73,12 +77,12 @@ journey and captured our README screenshots.
 
 - A product where the AI's most valuable output is sometimes **"don't apply"** — with the
   reasoning and the math to back it up.
-- The self-correcting draft loop: watch the panel score move from 74 to 88 as the Reviser
+- The self-correcting draft loop: watch the panel score move (74 to 88 in the demo run) as the Reviser
   addresses specific critical notes, with before/after diffs.
 - End-to-end robustness: every external dependency (Claude, Grants.gov, even the browser's
   storage) has a tested fallback.
-- Real unit economics: ~$0.05 per fit brief, ~$0.40 per reviewed draft — against a
-  $3,000–5,000 human alternative.
+- Real unit economics, measured not claimed: each live draft shows its own token-metered
+  compute cost in the UI (~$0.40 at Opus 5 list prices) — against a $3,000–5,000 human alternative.
 
 ## What we learned
 

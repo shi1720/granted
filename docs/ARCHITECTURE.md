@@ -38,8 +38,9 @@ floor/ceiling, cost-sharing flags, deadline) and returns a typed go/no-go brief:
 ### Drafting pipeline (`lib/ai/draft.ts`)
 
 An async generator that yields typed `DraftEvent`s, streamed to the browser as
-server-sent events. Five model calls, one warm prompt-cache lane (same model, shared
-context blocks):
+server-sent events. Five model calls on one model, sharing the same grounded
+context blocks; measured token usage is accumulated across all five and surfaced
+in the UI as the draft's real compute cost:
 
 | Stage | Call | Output |
 |---|---|---|
@@ -82,7 +83,9 @@ failure matrix:
 | Claude API error (auth/rate-limit/network) | Typed SDK errors (`AuthenticationError`, `RateLimitError`, …) map to friendly messages; match falls back to the heuristic engine with a warning; the SSE stream emits a terminal `error` event the UI renders in place. |
 | Model emits an unplanned section id | The parser tolerates it (content is kept, titled from the slug) rather than dropping text. |
 | `max_tokens`/refusal stop reasons | Detected on the final message; surfaced as a retryable error instead of a silently truncated draft. |
-| Client disconnects mid-draft | The route's stream controller closes; an `AbortController` on the client cancels cleanly on re-run/unmount. |
+| Client disconnects mid-draft | The route's `cancel()` aborts an upstream `AbortController` that is threaded into every Claude call — a closed tab stops token spend immediately. The client side aborts its own fetch on re-run/unmount. |
+| An "Others" eligibility bucket | Never assumed to cover the org: the funder's own eligibility text is scanned, and an uninformative definition yields "unclear", not false confidence — in either direction. |
+| Unknown opportunity ids | Grants.gov returns success envelopes with empty payloads; the client detects the missing id and returns 404 instead of analyzing a phantom grant. |
 | Hard navigation mid-flow | State writes to `localStorage` synchronously (a debounce here was a real bug our Playwright smoke test caught — see `scripts/smoke.mjs`). |
 
 Input validation: every API route validates its payload (Zod `OrgProfileZ` for profiles,
@@ -104,12 +107,16 @@ margin at realistic usage (a heavy user drafting 10 proposals/month costs ≈ $4
 
 ## Testing
 
-- **Unit (vitest, 26 tests):** Grants.gov parsers (money strings, entity-laden titles,
-  timezone-suffixed dates), eligibility gating per org type, EV/capacity math, deadline
-  penalties, and the stream parser's chunk-boundary behavior.
+- **Unit (vitest, 31 tests):** Grants.gov parsers (money strings, entity-laden titles,
+  timezone-suffixed dates), eligibility gating per org type — including "Others"-bucket
+  semantics pinned against real snapshot data (the Smart Reentry skip and the featured
+  grant's eligibility) — EV/capacity math, deadline penalties, and the stream parser's
+  chunk-boundary behavior down to one-character chunks.
 - **End-to-end (Playwright, `scripts/smoke.mjs`):** onboarding → live discover → fit
-  analysis → workspace → full draft pipeline → export affordances → pipeline board,
-  asserting on live-data badges, the revision toggle, and captured screenshots.
+  analysis → the honesty test (Smart Reentry must render "Not eligible / Skip") →
+  workspace → full draft pipeline → hard assertions on the revision toggle and export →
+  pipeline board, capturing the README screenshots along the way. Data-source liveness
+  is logged rather than asserted, since the Grants.gov API's availability isn't ours.
 
 ## What's deliberately out of scope for the MVP
 

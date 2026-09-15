@@ -17,10 +17,11 @@ npm install && npm run dev     # http://localhost:3000
    real award ceilings).
 3. **Click "Analyze fit" on the featured Second Chance Act grant** → a go/no-go brief
    with an eligibility gate, effort estimate, and expected-value math shown.
-4. **The honesty test:** analyze **"Smart Reentry Demonstration Program"** — a
-   perfect-sounding mission fit that Granted tells you to **skip**, because the funder's
-   eligible-applicant list excludes nonprofits. This is the product's core claim: it
-   protects a small org's 40 hours, even from itself.
+4. **The honesty test:** on Discover, use the "60-second tour" strip → **"See an honest
+   'skip' verdict"** (BJA Smart Reentry) → *Run the Analyst*. A perfect-sounding mission
+   fit that Granted tells you to **skip**, because the funder's eligible-applicant list
+   is governments only. This is the product's core claim: it protects a small org's 40
+   hours, even from itself. (Pinned by unit tests against real snapshot data.)
 5. **Open the featured grant's workspace → start drafting** → watch
    Strategist → Writer → Reviewer → Reviser stream live: the funder-priority read, the
    grounded sections with `[ADD: …]` placeholders instead of invented data, the panel
@@ -38,4 +39,4 @@ npm install && npm run dev     # http://localhost:3000
 | `lib/fit.ts` | Deterministic economics + the transparent no-key fit engine |
 | `scripts/smoke.mjs` | Playwright E2E that drives the whole journey (it caught a real bug) |
 
-`npm test` runs 26 unit tests, including the stream parser fed one character at a time.
+`npm test` runs 31 unit tests, including the stream parser fed one character at a time.

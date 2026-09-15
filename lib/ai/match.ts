@@ -26,7 +26,11 @@ export async function analyzeFit(grant: GrantDetail, org: OrgProfile): Promise<F
   const a = response.parsed_output;
   if (!a) throw new Error("The Analyst returned an unparseable brief. Try again.");
 
-  const ev = expectedValue(grant.awardFloor, grant.awardCeiling, a.winRate);
+  // Expected value is meaningless for an org that can't apply.
+  const ev =
+    a.eligibilityVerdict === "ineligible"
+      ? null
+      : expectedValue(grant.awardFloor, grant.awardCeiling, a.winRate);
 
   return {
     grantId: grant.id,

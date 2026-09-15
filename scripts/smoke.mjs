@@ -64,11 +64,27 @@ if ((await featured.count()) > 0) {
 }
 await page.waitForSelector("text=engine", { timeout: 120000 });
 log("fit analysis rendered");
+
+// The demo path strip must make both exemplars reachable regardless of what
+// live search returns today.
+await page.waitForSelector("text=The 60-second tour:");
 await shot("03-discover", true);
 
 // Save to pipeline
 await page.locator("text=+ Save to pipeline").first().click();
 log("saved to pipeline");
+
+// The honesty test: Smart Reentry (363588) reads like a perfect mission fit,
+// but its eligible-applicant list is governments only — Granted must say skip.
+await page.goto(`${BASE}/grants/363588`);
+await page.waitForSelector("text=Smart Reentry");
+if ((await page.locator("text=Why it fits").count()) === 0) {
+  await page.click("text=Run the Analyst");
+}
+await page.waitForSelector("text=Not eligible", { timeout: 120000 });
+await page.waitForSelector("text=Skip", { timeout: 5000 });
+log("honesty test passed: Smart Reentry correctly marked ineligible → skip");
+await shot("03b-honest-skip", true);
 
 // 4. Workspace for the featured demo grant
 await page.goto(`${BASE}/grants/363637`);
@@ -95,10 +111,11 @@ await page.waitForSelector("text=Review panel verdict");
 await shot("06-draft-review");
 await shot("06b-draft-full", true);
 
-const revised = await page.locator("text=view original").count();
-log(`revision before/after toggle present: ${revised > 0}`);
-const dl = await page.locator("text=Download .md").count();
-log(`export available: ${dl > 0}`);
+// Hard assertions — these are the affordances the docs promise.
+await page.waitForSelector("text=view original", { timeout: 10000 });
+log("revision before/after toggle present");
+await page.waitForSelector("text=Download .md", { timeout: 10000 });
+log("export available");
 
 // 6. Pipeline tracker
 await page.goto(`${BASE}/pipeline`);

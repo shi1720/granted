@@ -147,6 +147,11 @@ export async function fetchGrantDetail(opportunityId: string): Promise<GrantDeta
   if (json.errorcode !== 0) throw new Error(`Grants.gov error: ${json.msg}`);
 
   const d = json.data;
+  // Grants.gov returns errorcode 0 with an empty payload for unknown ids —
+  // treat that as not-found instead of fabricating a grant.
+  if (!d || d.id === undefined || d.id === null) {
+    throw new Error(`Opportunity ${opportunityId} not found on Grants.gov.`);
+  }
   const syn = d.synopsis ?? d.forecast ?? {};
 
   const eligibilityCodes: string[] = (syn.applicantTypes ?? [])

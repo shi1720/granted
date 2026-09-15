@@ -6,7 +6,7 @@ import { Nav } from "@/components/nav";
 import { GrantCard } from "@/components/grant-card";
 import { EmptyState, Spinner } from "@/components/ui";
 import { useGranted } from "@/components/store";
-import { FEATURED_DEMO_GRANT_ID } from "@/lib/demo";
+import { FEATURED_DEMO_GRANT_ID, HONESTY_TEST_GRANT_ID } from "@/lib/demo";
 import { FUNDING_CATEGORIES } from "@/lib/grantsgov";
 import type { GrantSummary } from "@/lib/types";
 
@@ -150,6 +150,20 @@ export default function DiscoverPage() {
         {error && (
           <p className="mt-6 rounded-xl bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>
         )}
+
+        {/* Deterministic demo path — both are real, open opportunities. */}
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-2xl border border-pine-100 bg-pine-50/60 px-4 py-3">
+          <span className="text-sm font-semibold text-pine-900">The 60-second tour:</span>
+          <Link href={`/grants/${FEATURED_DEMO_GRANT_ID}`} className="btn-primary text-xs px-4 py-2">
+            Watch the agents draft a real $1M grant →
+          </Link>
+          <Link href={`/grants/${HONESTY_TEST_GRANT_ID}`} className="btn-secondary text-xs px-4 py-2">
+            See an honest &ldquo;skip&rdquo; verdict →
+          </Link>
+          <span className="text-xs text-ink-faint">
+            Both are real opportunities — the second looks like a perfect fit, until you read the eligibility rules.
+          </span>
+        </div>
 
         {/* results */}
         <div className="mt-6 space-y-4">

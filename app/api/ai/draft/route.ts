@@ -45,6 +45,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Aborting this controller stops in-flight Claude calls when the client
+  // disconnects, so a closed tab never keeps burning tokens.
+  const upstream = new AbortController();
+
   let events: AsyncGenerator<DraftEvent>;
   if (live) {
     let grant;
@@ -64,7 +68,7 @@ export async function POST(req: NextRequest) {
       fit && typeof fit === "object" && "verdict" in (fit as object)
         ? (fit as Parameters<typeof draftProposal>[0]["fit"])
         : null;
-    events = draftProposal({ grant, org, fit: fitReport });
+    events = draftProposal({ grant, org, fit: fitReport, signal: upstream.signal });
   } else {
     events = demoDraftEvents();
   }
@@ -80,6 +84,7 @@ export async function POST(req: NextRequest) {
         } catch {
           // Client went away mid-stream; stop producing.
           closed = true;
+          upstream.abort();
         }
       };
       try {
@@ -102,8 +107,9 @@ export async function POST(req: NextRequest) {
       }
     },
     cancel() {
-      // Client disconnected — stop the producer loop above.
+      // Client disconnected — stop the producer loop and abort model calls.
       closed = true;
+      upstream.abort();
     },
   });
 

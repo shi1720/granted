@@ -4,8 +4,9 @@
 for ~4:40 at a natural speaking speed, leaving buffer.
 **Setup before recording:** `ANTHROPIC_API_KEY` set (live mode), browser at
 `localhost:3000`, localStorage cleared (fresh state), window ~1440px wide.
-If you must record without a key, the demo-mode replay follows the identical flow — say
-"pipeline" instead of "Claude" nowhere changes.
+If you must record without a key, the demo-mode replay follows the identical flow — just
+skip the "Extract profile with Claude" beat (use "Load the demo organization" instead) and
+don't cite the cost chip, which only appears on live runs.
 
 > **Recording tip:** record the draft pipeline segment in real time and speed it up 2–4× in
 > the edit, keeping the section text readable. Keep your cursor calm; move it only when
@@ -51,8 +52,9 @@ every agent downstream grounds itself in."
 
 **SCREEN:** Discover page loads with live results and the "Live" badge. Point at the badge.
 Click **Analyze fit** on the *featured* Second Chance Act grant; when the brief opens,
-hover the eligibility pill → strengths → expected value. Then scroll to **Smart Reentry**,
-click **Analyze fit**, and let the red "Skip / Not eligible" verdict land on screen.
+hover the eligibility pill → strengths → expected value. Then use the "60-second tour" strip →
+**"See an honest 'skip' verdict"** (Smart Reentry), click **Run the Analyst**, and let the
+red "Skip / Not eligible" verdict land on screen.
 
 **VOICE:**
 "Discovery is live — this is the real Grants.gov API, these deadlines are real. But search
@@ -78,7 +80,7 @@ countdown, award range, eligibility pills). Click **Start drafting with Claude**
 agent timeline lighting up: Strategist card, then the "Strategist's read on this funder"
 panel — pause on it. Sections stream in (sped up in edit). Reviewer posts the score and
 notes. Reviser rewrites; click **"Revised — view original"** to flash the before/after.
-End on the two score dials (e.g. 74 → 88).
+End on the two score dials and the cost chip (“This draft cost ≈ $0.__ of compute”). Use YOUR run's real numbers when narrating.
 
 **VOICE:**
 "Now the part that used to cost five thousand dollars. This is a real Bureau of Justice
@@ -94,12 +96,12 @@ visible ADD placeholder. In federal grant writing, an invented statistic isn't a
 it's disqualifying. Honesty here is a feature.
 
 Then — and this is what makes it a team, not a template — the Reviewer scores the draft
-the way the funder's own panel would. Seventy-four out of a hundred, with specific,
+the way the funder's own panel would. [say your run's first score], with specific,
 critical notes. The Reviser rewrites exactly what got flagged... and the panel rescores:
-eighty-eight. You can see the before and after of every revised section.
+[say your run's second score]. You can see the before and after of every revised section.
 
-Draft, critique, revision, rescore — in about three minutes, for about forty cents of
-compute."
+Draft, critique, revision, rescore — in about three minutes. And the cost isn't a claim:
+the app meters its own tokens — you can see it on screen, about forty cents of compute."
 
 ---
 
@@ -141,5 +143,5 @@ Thanks for watching."
 - [ ] The Smart Reentry "skip" verdict fully on screen for ≥3 s (1:50)
 - [ ] Strategist's funder-read panel on screen for ≥4 s (2:25)
 - [ ] An `[ADD: …]` placeholder visibly highlighted during writing (3:00)
-- [ ] Score dials 74 → 88 (or that run's numbers) on screen at (3:40)
+- [ ] Score dials + the measured cost chip on screen at (3:40)
 - [ ] Speed up only the streaming; keep clicks and verdicts real-time
